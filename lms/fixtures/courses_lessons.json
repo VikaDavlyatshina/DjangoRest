@@ -1,0 +1,106 @@
+[
+    {
+        "model": "lms.course",
+        "pk": 3,
+        "fields": {
+            "title": "Python для начинающих",
+            "description": "Полный курс по Python с нуля. Изучите основы программирования.",
+            "preview": ""
+        }
+    },
+    {
+        "model": "lms.course",
+        "pk": 4,
+        "fields": {
+            "title": "Django Framework",
+            "description": "Создание веб-приложений на Django. От простых сайтов до сложных проектов.",
+            "preview": ""
+        }
+    },
+    {
+        "model": "lms.course",
+        "pk": 5,
+        "fields": {
+            "title": "JavaScript для начинающих",
+            "description": "Изучите JavaScript с нуля. Переменные, функции, DOM.",
+            "preview": ""
+        }
+    },
+    {
+        "model": "lms.lesson",
+        "pk": 5,
+        "fields": {
+            "title": "Введение в Python",
+            "description": "История Python, установка, первая программа",
+            "link": "https://youtu.be/1",
+            "preview": "",
+            "course": 3
+        }
+    },
+    {
+        "model": "lms.lesson",
+        "pk": 6,
+        "fields": {
+            "title": "Переменные и типы данных",
+            "description": "Числа, строки, списки, словари",
+            "link": "https://youtu.be/2",
+            "preview": "",
+            "course": 3
+        }
+    },
+    {
+        "model": "lms.lesson",
+        "pk": 7,
+        "fields": {
+            "title": "Условные операторы и циклы",
+            "description": "if, else, for, while",
+            "link": "https://youtu.be/3",
+            "preview": "",
+            "course": 3
+        }
+    },
+    {
+        "model": "lms.lesson",
+        "pk": 8,
+        "fields": {
+            "title": "Функции в Python",
+            "description": "Создание функций, аргументы",
+            "link": "https://youtu.be/4",
+            "preview": "",
+            "course": 3
+        }
+    },
+    {
+        "model": "lms.lesson",
+        "pk": 9,
+        "fields": {
+            "title": "Введение в Django",
+            "description": "Установка Django, создание проекта",
+            "link": "https://youtu.be/5",
+            "preview": "",
+            "course": 4
+        }
+    },
+    {
+        "model": "lms.lesson",
+        "pk": 10,
+        "fields": {
+            "title": "Модели Django",
+            "description": "Создание моделей, миграции",
+            "link": "https://youtu.be/6",
+            "preview": "",
+            "course": 4
+        }
+    },
+    {
+        "model": "lms.lesson",
+        "pk": 11,
+        "fields": {
+            "title": "JavaScript основы",
+            "description": "Переменные, типы данных",
+            "link": "https://youtu.be/7",
+            "preview": "",
+            "course": 5
+        }
+    }
+]
