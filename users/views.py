@@ -1,7 +1,15 @@
-from rest_framework import generics
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, generics
 
-from users.models import User
-from users.serializers import UserSerializer
+from users.models import Payments, User
+from users.serializers import PaymentSerializer, UserSerializer
+
+
+class UserListView(generics.ListAPIView):
+    """Список всех пользователей"""
+
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
@@ -9,3 +17,34 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+
+class PaymentListView(generics.ListAPIView):
+    """
+    Эндпоинт для получения списка платежей с возможностью фильтрации и сортировки.
+    """
+
+    # Оптимизация: подгружаем связанные данные одним запросом
+    queryset = Payments.objects.select_related(
+        "user", "paid_course", "paid_lesson"
+    ).all()
+
+    # Сериализатор для преобразования объектов в JSON
+    serializer_class = PaymentSerializer
+
+    # Бэкенды для фильтрации и сортировки
+    filter_backends = [
+        DjangoFilterBackend,  # Позволяет фильтровать через ?поле=значение
+        filters.OrderingFilter,
+    ]  # Позволяет сортировать через ?ordering=поле
+    filterset_fields = [
+        "paid_course",  # ID курса
+        "paid_lesson",  # ID курса
+        "payment_method",  # Способ оплаты ('cash' или 'transfer')
+    ]
+
+    # Поля, по которым можно сортировать (По дате и по сумме)
+    ordering_fields = ["payment_date", "payment_amount"]
+
+    # Сортировка по умолчанию (новые платежи первыми)
+    ordering = ["-payment_date"]
