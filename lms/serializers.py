@@ -24,6 +24,7 @@ class LessonSerializer(serializers.ModelSerializer):
         model = Lesson
         fields = "__all__"
 
+
 class CourseDetailSerializer(serializers.ModelSerializer):
     """
     Сериализатор для детальной информации о курсе.
@@ -36,7 +37,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields = ('id', 'title', 'description', 'lessons_count', 'lessons')
+        fields = ("id", "title", "description", "lessons_count", "lessons")
 
     def get_lessons_count(self, instance):
         """Возвращает количество уроков в курсе"""
@@ -45,4 +46,3 @@ class CourseDetailSerializer(serializers.ModelSerializer):
         # instance.lessons.count() - Вызываем метод count() для подсчёта количества
 
         return instance.lessons.count()
-

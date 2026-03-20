@@ -3,7 +3,6 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
-
 # Create your models here.
 
 
@@ -12,7 +11,7 @@ class UserManager(BaseUserManager):
 
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError('Email обязателен')
+            raise ValueError("Email обязателен")
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
@@ -21,14 +20,14 @@ class UserManager(BaseUserManager):
 
     def create_superuser(self, email, password=None, **extra_fields):
         # Устанавливаем значения по умолчанию
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('is_active', True)
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_active", True)
 
-        if not extra_fields.get('is_staff'):
-            raise ValueError('Суперпользователь должен иметь is_staff=True')
-        if not extra_fields.get('is_superuser'):
-            raise ValueError('Суперпользователь должен иметь is_superuser=True')
+        if not extra_fields.get("is_staff"):
+            raise ValueError("Суперпользователь должен иметь is_staff=True")
+        if not extra_fields.get("is_superuser"):
+            raise ValueError("Суперпользователь должен иметь is_superuser=True")
 
         return self.create_user(email, password, **extra_fields)
 
@@ -37,37 +36,37 @@ class User(AbstractUser):
     username = None
 
     email = models.EmailField(
-        unique=True, verbose_name='Email', help_text='Укажите email'
+        unique=True, verbose_name="Email", help_text="Укажите email"
     )
     phone = PhoneNumberField(
         blank=True,
         null=True,
-        verbose_name='Телефон',
-        help_text='Введите номер телефона',
+        verbose_name="Телефон",
+        help_text="Введите номер телефона",
     )
     city = models.CharField(
         max_length=50,
         blank=True,
         null=True,
-        verbose_name='Город',
-        help_text='Введите город проживания',
+        verbose_name="Город",
+        help_text="Введите город проживания",
     )
     avatar = models.ImageField(
-        upload_to='users/avatars',
+        upload_to="users/avatars",
         blank=True,
         null=True,
-        verbose_name='Фото профиля',
-        help_text='Загрузите фото профиля',
+        verbose_name="Фото профиля",
+        help_text="Загрузите фото профиля",
     )
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
     objects = UserManager()
 
     class Meta:
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
 
 
 class Payments(models.Model):
@@ -82,19 +81,44 @@ class Payments(models.Model):
     """
 
     PAYMENT_METHODS = [
-        ('cash', 'Наличные'),
-        ('transfer', 'Перевод на счет'),
+        ("cash", "Наличные"),
+        ("transfer", "Перевод на счет"),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь', related_name='payments')
-    payment_date = models.DateTimeField(auto_now_add=True, verbose_name='Дата оплаты')
-    paid_course= models.ForeignKey('lms.Course', on_delete=models.SET_NULL, blank=True, null=True, verbose_name='Оплаченный курс', related_name='payments')
-    paid_lesson = models.ForeignKey('lms.Lesson', on_delete=models.SET_NULL, blank=True, null=True,
-                                    verbose_name='Оплаченный урок', related_name='payments')
-    payment_amount = models.PositiveIntegerField(verbose_name='Сумма оплаты', help_text='Сумма в рублях')
-    payment_method =models.CharField(max_length=10, choices=PAYMENT_METHODS,default='cash', verbose_name='Способ оплаты')
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name="Пользователь",
+        related_name="payments",
+    )
+    payment_date = models.DateTimeField(auto_now_add=True, verbose_name="Дата оплаты")
+    paid_course = models.ForeignKey(
+        "lms.Course",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name="Оплаченный курс",
+        related_name="payments",
+    )
+    paid_lesson = models.ForeignKey(
+        "lms.Lesson",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name="Оплаченный урок",
+        related_name="payments",
+    )
+    payment_amount = models.PositiveIntegerField(
+        verbose_name="Сумма оплаты", help_text="Сумма в рублях"
+    )
+    payment_method = models.CharField(
+        max_length=10,
+        choices=PAYMENT_METHODS,
+        default="cash",
+        verbose_name="Способ оплаты",
+    )
 
     class Meta:
-        verbose_name= 'Платёж'
-        verbose_name_plural= 'Платежи'
-        ordering = ('-payment_date',)
+        verbose_name = "Платёж"
+        verbose_name_plural = "Платежи"
+        ordering = ("-payment_date",)
