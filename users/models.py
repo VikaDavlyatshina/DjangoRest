@@ -1,3 +1,4 @@
+from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
@@ -6,8 +7,34 @@ from phonenumber_field.modelfields import PhoneNumberField
 # Create your models here.
 
 
+class UserManager(BaseUserManager):
+    """Кастомный менеджер для модели User без username"""
+
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('Email обязателен')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        # Устанавливаем значения по умолчанию
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+
+        if not extra_fields.get('is_staff'):
+            raise ValueError('Суперпользователь должен иметь is_staff=True')
+        if not extra_fields.get('is_superuser'):
+            raise ValueError('Суперпользователь должен иметь is_superuser=True')
+
+        return self.create_user(email, password, **extra_fields)
+
+
 class User(AbstractUser):
-    user_name = None
+    username = None
 
     email = models.EmailField(
         unique=True, verbose_name='Email', help_text='Укажите email'
@@ -35,6 +62,8 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+
+    objects = UserManager()
 
     class Meta:
         verbose_name = 'Пользователь'
