@@ -13,27 +13,6 @@ class CourseSerializer(serializers.ModelSerializer):
         model = Course
         fields = "__all__"
 
-class CourseDetailSerializer(serializers.ModelSerializer):
-    """
-    Сериализатор для детальной информации о курсе.
-    Добавляет вычисляемое поле lessons_count с количеством уроков.
-    """
-
-    # Объявляем поле, значение которого будет вычисляться динамически
-    lessons_count = serializers.SerializerMethodField()
-
-    # Метод для вычисления кол-ва уроков
-    def get_lessons_count(self, instance):
-        # instance - Текущий курс, курс, который сериализуем
-        # instance.lessons - Все уроки этого курса
-        # instance.lessons.count() - Вызываем метод count() для подсчёта количества
-
-        return instance.lessons.count()
-
-    class Meta:
-        model = Course
-        fields = ('id', 'title','description', 'lessons_count')
-
 
 class LessonSerializer(serializers.ModelSerializer):
     """
@@ -44,4 +23,26 @@ class LessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
         fields = "__all__"
+
+class CourseDetailSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для детальной информации о курсе.
+    Добавляет вычисляемое поле lessons_count с количеством уроков.
+    """
+
+    # Объявляем поле, значение которого будет вычисляться динамически
+    lessons_count = serializers.SerializerMethodField()
+    lessons = LessonSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Course
+        fields = ('id', 'title', 'description', 'lessons_count', 'lessons')
+
+    def get_lessons_count(self, instance):
+        """Возвращает количество уроков в курсе"""
+        # instance - Текущий курс, курс, который сериализуем
+        # instance.lessons - Все уроки этого курса
+        # instance.lessons.count() - Вызываем метод count() для подсчёта количества
+
+        return instance.lessons.count()
 
