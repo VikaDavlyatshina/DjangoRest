@@ -1,5 +1,8 @@
 from django.db import models
 
+from config import settings
+
+
 # Create your models here.
 
 
@@ -21,6 +24,14 @@ class Course(models.Model):
     description = models.TextField(
         verbose_name="Описание курса",
         help_text="Введите описание курса",
+        blank=True,
+        null=True,
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        verbose_name="Владелец",
+        related_name="courses",
         blank=True,
         null=True,
     )
@@ -66,6 +77,14 @@ class Lesson(models.Model):
         verbose_name="Курс",
         help_text="Введите название курса",
         related_name="lessons",  # Позволяет получать все уроки Курса: course.lessons.all()
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        verbose_name="Владелец",
+        related_name="lessons",
+        blank=True,
+        null=True,
     )
 
     class Meta:
