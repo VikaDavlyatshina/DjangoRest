@@ -1,12 +1,21 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, generics
+from rest_framework import filters, generics, permissions
 
 from users.models import Payments, User
-from users.serializers import PaymentSerializer, UserSerializer
+from users.serializers import PaymentSerializer, UserSerializer, UserCreateSerializer
 
+
+class UserCreateAPIView(generics.CreateAPIView):
+    """Регистрация нового пользователя (доступна всем)"""
+
+    queryset = User.objects.all()
+    serializer_class = UserCreateSerializer
+
+    # Разрешаем регистрацию всем
+    permission_classes = [permissions.AllowAny]
 
 class UserListView(generics.ListAPIView):
-    """Список всех пользователей"""
+    """Список всех пользователей (только чтение)"""
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
