@@ -1,5 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, permissions
+from users.permissions import IsSelfOrReadOnly
 
 from users.models import Payments, User
 from users.serializers import PaymentSerializer, UserSerializer, UserCreateSerializer
@@ -26,7 +27,16 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated, IsSelfOrReadOnly]
 
+class PaymentCreateAPIView(generics.CreateAPIView):
+    """Создание платежа"""
+
+    serializer_class = PaymentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 class PaymentListView(generics.ListAPIView):
     """
@@ -57,3 +67,17 @@ class PaymentListView(generics.ListAPIView):
 
     # Сортировка по умолчанию (новые платежи первыми)
     ordering = ["-payment_date"]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        queryset = Payments.objects.select_related(
+            "user", "paid_course", "paid_lesson"
+        )
+
+        # Админ видит всё
+        if user.is_superuser:
+            return queryset
+
+        # Обычный пользователь — только свои платежи
+        return queryset.filter(user=user)
