@@ -152,3 +152,14 @@ class UserSerializer(serializers.ModelSerializer):
 
         total = instance.payments.aggregate(total=models.Sum("payment_amount"))["total"]
         return total or 0
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get("request")
+
+        # Если это чужой профиль — скрываем историю платежей и total_spent
+        if request and request.user != instance:
+            data.pop("payments", None)
+            data.pop("total_spent", None)
+
+        return data
