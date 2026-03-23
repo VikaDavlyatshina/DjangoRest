@@ -7,12 +7,12 @@ class IsModerator(BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        return request.user.groups.filter(name='Moderators').exists()
+        return request.user.groups.filter(name="Moderators").exists()
 
     def has_object_permission(self, request, view, obj):
         if not request.user or not request.user.is_authenticated:
             return False
-        return request.user.groups.filter(name='Moderators').exists()
+        return request.user.groups.filter(name="Moderators").exists()
 
 
 class IsOwner(BasePermission):
@@ -22,7 +22,7 @@ class IsOwner(BasePermission):
         return request.user and request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
-        if hasattr(obj, 'owner'):
+        if hasattr(obj, "owner"):
             return obj.owner == request.user
         return False
 
@@ -36,7 +36,7 @@ class IsSelfOrReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):
 
         # GET, HEAD, OPTIONS — можно всем
-        if request.method in ['GET', 'HEAD', 'OPTIONS']:
+        if request.method in ["GET", "HEAD", "OPTIONS"]:
             return True
 
         # PUT/PATCH — только свой профиль

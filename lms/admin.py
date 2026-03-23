@@ -2,8 +2,8 @@ from django.contrib import admin
 
 from lms.models import Course, Lesson
 
-
 # Register your models here.
+
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
@@ -12,19 +12,20 @@ class CourseAdmin(admin.ModelAdmin):
     """
 
     # Поля, которые отображаются в списке
-    list_display = ('id', 'title', 'owner', 'description')
+    list_display = ("id", "title", "owner", "description")
 
     # Поля, по которым можно фильтровать
-    list_filter = ('title', 'owner')
+    list_filter = ("title", "owner")
 
     # Поля, по которым можно искать
-    search_fields = ('title', 'description')
+    search_fields = ("title", "description")
 
     # Поля, которые можно редактировать прямо в списке
-    list_editable = ('title',)
+    list_editable = ("title",)
 
     # Сортировка по умолчанию
-    ordering = ('-id',)  # минус означает по убыванию
+    ordering = ("-id",)  # минус означает по убыванию
+
 
 @admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
@@ -33,16 +34,16 @@ class LessonAdmin(admin.ModelAdmin):
     """
 
     # Поля, которые отображаются в списке
-    list_display = ('id', 'title', 'owner', 'description', 'link')
+    list_display = ("id", "title", "owner", "description", "link")
 
     # Поля, по которым можно фильтровать
-    list_filter = ('title', 'owner')
+    list_filter = ("title", "owner")
 
     # Поля, по которым можно искать
-    search_fields = ('title', 'description')
+    search_fields = ("title", "description")
 
     # Поля, которые можно редактировать прямо в списке
-    list_editable = ('title',)
+    list_editable = ("title",)
 
     # Сортировка по умолчанию
-    ordering = ('-id',)  # минус означает по убыванию
+    ordering = ("-id",)  # минус означает по убыванию

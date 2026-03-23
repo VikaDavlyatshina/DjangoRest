@@ -5,7 +5,6 @@ from rest_framework.viewsets import ModelViewSet
 from lms.models import Course, Lesson
 from lms.serializers import (CourseDetailSerializer, CourseSerializer,
                              LessonSerializer)
-
 from users.permissions import IsModerator, IsOwner
 
 # Create your views here.
@@ -47,6 +46,7 @@ class CourseViewSet(ModelViewSet):
 
         return super().get_permissions()
 
+
 class CourseRetrieveAPIView(generics.RetrieveAPIView):
     """
     Получение детальной информации о курсе.
@@ -57,13 +57,12 @@ class CourseRetrieveAPIView(generics.RetrieveAPIView):
     queryset = Course.objects.all()
 
 
-
 class LessonCreateAPIView(generics.CreateAPIView):
     """Создание нового урока."""
 
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    permission_classes = [~IsModerator]    # Только обычные пользователи
+    permission_classes = [~IsModerator]  # Только обычные пользователи
 
     def perform_create(self, serializer):
         new_lesson = serializer.save()
@@ -85,8 +84,6 @@ class LessonListAPIView(generics.ListAPIView):
 
         # Обычный пользователь — только свои курсы
         return Lesson.objects.filter(owner=user)
-
-
 
 
 class LessonRetrieveAPIView(generics.RetrieveAPIView):

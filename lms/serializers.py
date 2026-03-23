@@ -9,7 +9,7 @@ class CourseSerializer(serializers.ModelSerializer):
     Используется для базового вывода информации о курсе.
     """
 
-    owner_email = serializers.EmailField(source='owner.email', read_only=True)
+    owner_email = serializers.EmailField(source="owner.email", read_only=True)
 
     class Meta:
         model = Course
@@ -23,21 +23,33 @@ class LessonSerializer(serializers.ModelSerializer):
     Используется для вывода информации об уроке.
     """
 
-    owner_email = serializers.EmailField(source='owner.email', read_only=True)
-    course_title = serializers.CharField(source='course.title', read_only=True)
+    owner_email = serializers.EmailField(source="owner.email", read_only=True)
+    course_title = serializers.CharField(source="course.title", read_only=True)
 
     class Meta:
         model = Lesson
-        fields = ["id", "title", "description", "link", "course", "course_title", "owner_email"]
+        fields = [
+            "id",
+            "title",
+            "description",
+            "link",
+            "course",
+            "course_title",
+            "owner_email",
+        ]
         read_only_fields = ["id", "owner_email", "course_title"]
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        request = self.context.get('request')
+        request = self.context.get("request")
 
         # Если пользователь не владелец и не модератор — скрываем email
-        if request and request.user != instance.owner and not request.user.groups.filter(name='Moderators').exists():
-            data.pop('owner_email', None)
+        if (
+            request
+            and request.user != instance.owner
+            and not request.user.groups.filter(name="Moderators").exists()
+        ):
+            data.pop("owner_email", None)
 
         return data
 
@@ -49,13 +61,20 @@ class CourseDetailSerializer(serializers.ModelSerializer):
     """
 
     # Объявляем поле, значение которого будет вычисляться динамически
-    owner_email = serializers.EmailField(source='owner.email', read_only=True)
+    owner_email = serializers.EmailField(source="owner.email", read_only=True)
     lessons_count = serializers.SerializerMethodField()
     lessons = LessonSerializer(many=True, read_only=True)
 
     class Meta:
         model = Course
-        fields = ["id", "title", "description", "owner_email", "lessons_count", "lessons"]
+        fields = [
+            "id",
+            "title",
+            "description",
+            "owner_email",
+            "lessons_count",
+            "lessons",
+        ]
         read_only_fields = ["id", "owner_email", "lessons_count", "lessons"]
 
     def get_lessons_count(self, instance):

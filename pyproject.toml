@@ -18,7 +18,7 @@ dependencies = [
     "django-filter (>=25.2,<26.0)",
     "ipython (>=9.11.0,<10.0.0)",
     "djangorestframework-stubs (>=3.16.8,<4.0.0)",
-    "djangorestframework-simplejwt (>=5.5.1,<6.0.0)"
+    "djangorestframework-simplejwt (>=5.5.1,<6.0.0)",
 ]
 
 

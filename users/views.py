@@ -1,9 +1,10 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, permissions
-from users.permissions import IsSelfOrReadOnly
 
 from users.models import Payments, User
-from users.serializers import PaymentSerializer, UserSerializer, UserCreateSerializer
+from users.permissions import IsSelfOrReadOnly
+from users.serializers import (PaymentSerializer, UserCreateSerializer,
+                               UserSerializer)
 
 
 class UserCreateAPIView(generics.CreateAPIView):
@@ -14,6 +15,7 @@ class UserCreateAPIView(generics.CreateAPIView):
 
     # Разрешаем регистрацию всем
     permission_classes = [permissions.AllowAny]
+
 
 class UserListView(generics.ListAPIView):
     """Список всех пользователей (только чтение)"""
@@ -29,6 +31,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated, IsSelfOrReadOnly]
 
+
 class PaymentCreateAPIView(generics.CreateAPIView):
     """Создание платежа"""
 
@@ -37,6 +40,7 @@ class PaymentCreateAPIView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
 
 class PaymentListView(generics.ListAPIView):
     """
@@ -71,9 +75,7 @@ class PaymentListView(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
 
-        queryset = Payments.objects.select_related(
-            "user", "paid_course", "paid_lesson"
-        )
+        queryset = Payments.objects.select_related("user", "paid_course", "paid_lesson")
 
         # Админ видит всё
         if user.is_superuser:

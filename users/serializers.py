@@ -87,6 +87,7 @@ class UserPaymentSerializer(serializers.ModelSerializer):
             "payment_method_display",
         ]
 
+
 class UserCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для создания нового пользователя"""
 
@@ -94,14 +95,16 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'email', 'phone', 'city', 'avatar', 'password']
+        fields = ["id", "email", "phone", "city", "avatar", "password"]
 
-        read_only_fields = ['id']
+        read_only_fields = ["id"]
 
     def validate_email(self, value):
         """Проверяем, что email не занят"""
         if User.objects.filter(email=value).exists():
-             raise serializers.ValidationError('Пользователь с таким email уже существует')
+            raise serializers.ValidationError(
+                "Пользователь с таким email уже существует"
+            )
         return value
 
     def create(self, validated_data):
@@ -110,16 +113,17 @@ class UserCreateSerializer(serializers.ModelSerializer):
         """
 
         # Забираем пароль и email из словаря
-        password = validated_data.pop('password')
-        email = validated_data.pop('email')
+        password = validated_data.pop("password")
+        email = validated_data.pop("email")
 
         # Создаем пользователя
         user = User.objects.create_user(
             email=email,
             password=password,
-            **validated_data,   # first_name, last_name, phone, city и т.д.
+            **validated_data,  # first_name, last_name, phone, city и т.д.
         )
         return user
+
 
 class UserSerializer(serializers.ModelSerializer):
     """
