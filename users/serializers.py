@@ -161,5 +161,6 @@ class UserSerializer(serializers.ModelSerializer):
         if request and request.user != instance:
             data.pop("payments", None)
             data.pop("total_spent", None)
+            data.pop("last_name", None)
 
         return data
