@@ -1,56 +1,62 @@
 [
-    {
-        "model": "users.user",
-        "pk": 5,
-        "fields": {
-            "password": "pbkdf2_sha256$870000$1234567890abcdef1234567890abcdef1234567890abcdef",
-            "last_login": "2026-03-20T13:00:00Z",
-            "is_superuser": true,
-            "first_name": "Иван",
-            "last_name": "Петров",
-            "email": "ivan@example.com",
-            "is_staff": true,
-            "is_active": true,
-            "date_joined": "2026-01-01T10:00:00Z",
-            "phone": "+79161234567",
-            "city": "Москва",
-            "avatar": ""
-        }
-    },
-    {
-        "model": "users.user",
-        "pk": 6,
-        "fields": {
-            "password": "pbkdf2_sha256$870000$1234567890abcdef1234567890abcdef1234567890abcdef",
-            "last_login": null,
-            "is_superuser": false,
-            "first_name": "Пётр",
-            "last_name": "Сидоров",
-            "email": "petr@example.com",
-            "is_staff": false,
-            "is_active": true,
-            "date_joined": "2026-01-15T12:00:00Z",
-            "phone": "+79167654321",
-            "city": "Санкт-Петербург",
-            "avatar": ""
-        }
-    },
-    {
-        "model": "users.user",
-        "pk": 7,
-        "fields": {
-            "password": "pbkdf2_sha256$870000$1234567890abcdef1234567890abcdef1234567890abcdef",
-            "last_login": null,
-            "is_superuser": false,
-            "first_name": "Анна",
-            "last_name": "Иванова",
-            "email": "anna@example.com",
-            "is_staff": false,
-            "is_active": true,
-            "date_joined": "2026-02-01T09:00:00Z",
-            "phone": "+79169876543",
-            "city": "Казань",
-            "avatar": ""
-        }
+  {
+    "model": "users.user",
+    "pk": 5,
+    "fields": {
+      "password": "pbkdf2_sha256$870000$1234567890abcdef1234567890abcdef1234567890abcdef",
+      "last_login": "2026-03-20T13:00:00Z",
+      "is_superuser": true,
+      "first_name": "Иван",
+      "last_name": "Петров",
+      "email": "ivan@example.com",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2026-01-01T10:00:00Z",
+      "phone": "+79161234567",
+      "city": "Москва",
+      "avatar": "",
+      "groups": [1],
+      "user_permissions": []
     }
+  },
+  {
+    "model": "users.user",
+    "pk": 6,
+    "fields": {
+      "password": "pbkdf2_sha256$870000$1234567890abcdef1234567890abcdef1234567890abcdef",
+      "last_login": null,
+      "is_superuser": false,
+      "first_name": "Пётр",
+      "last_name": "Сидоров",
+      "email": "petr@example.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-01-15T12:00:00Z",
+      "phone": "+79167654321",
+      "city": "Санкт-Петербург",
+      "avatar": "",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "users.user",
+    "pk": 7,
+    "fields": {
+      "password": "pbkdf2_sha256$870000$1234567890abcdef1234567890abcdef1234567890abcdef",
+      "last_login": null,
+      "is_superuser": false,
+      "first_name": "Анна",
+      "last_name": "Иванова",
+      "email": "anna@example.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-01T09:00:00Z",
+      "phone": "+79169876543",
+      "city": "Казань",
+      "avatar": "",
+      "groups": [],
+      "user_permissions": []
+    }
+  }
 ]
