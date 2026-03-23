@@ -1,0 +1,32 @@
+[
+  {
+    "model": "lms.course",
+    "pk": 3,
+    "fields": {
+      "title": "Python для начинающих",
+      "description": "Полный курс по Python с нуля. Изучите основы программирования.",
+      "preview": "",
+      "owner": 5
+    }
+  },
+  {
+    "model": "lms.course",
+    "pk": 4,
+    "fields": {
+      "title": "Django Framework",
+      "description": "Создание веб-приложений на Django. От простых сайтов до сложных проектов.",
+      "preview": "",
+      "owner": 5
+    }
+  },
+  {
+    "model": "lms.course",
+    "pk": 5,
+    "fields": {
+      "title": "JavaScript для начинающих",
+      "description": "Изучите JavaScript с нуля. Переменные, функции, DOM.",
+      "preview": "",
+      "owner": 6
+    }
+  }
+]
