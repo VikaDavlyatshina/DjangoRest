@@ -24,8 +24,15 @@ class UserListView(generics.ListAPIView):
     serializer_class = UserSerializer
 
 
-class UserProfileView(generics.RetrieveUpdateAPIView):
-    """Просмотр и редактирование профиля пользователя"""
+class UserProfileView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Просмотр, редактирование и удаление профиля пользователя.
+
+    GET /users/<id>/     - просмотр (любой авторизованный)
+    PUT /users/<id>/     - полное обновление (только владелец)
+    PATCH /users/<id>/   - частичное обновление (только владелец)
+    DELETE /users/<id>/  - удаление (владелец или администратор)
+    """
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
