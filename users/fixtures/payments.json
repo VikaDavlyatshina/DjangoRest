@@ -1,0 +1,86 @@
+[
+    {
+        "model": "users.payments",
+        "pk": 1,
+        "fields": {
+            "user": 5,
+            "payment_date": "2026-02-20T13:05:02Z",
+            "paid_course": 3,
+            "paid_lesson": null,
+            "payment_amount": 15000,
+            "payment_method": "transfer"
+        }
+    },
+    {
+        "model": "users.payments",
+        "pk": 2,
+        "fields": {
+            "user": 5,
+            "payment_date": "2026-03-10T13:05:02Z",
+            "paid_course": 4,
+            "paid_lesson": null,
+            "payment_amount": 20000,
+            "payment_method": "transfer"
+        }
+    },
+    {
+        "model": "users.payments",
+        "pk": 3,
+        "fields": {
+            "user": 6,
+            "payment_date": "2026-03-15T13:05:02Z",
+            "paid_course": null,
+            "paid_lesson": 5,
+            "payment_amount": 2000,
+            "payment_method": "cash"
+        }
+    },
+    {
+        "model": "users.payments",
+        "pk": 4,
+        "fields": {
+            "user": 6,
+            "payment_date": "2026-03-18T13:05:02Z",
+            "paid_course": null,
+            "paid_lesson": 6,
+            "payment_amount": 2000,
+            "payment_method": "cash"
+        }
+    },
+    {
+        "model": "users.payments",
+        "pk": 5,
+        "fields": {
+            "user": 6,
+            "payment_date": "2026-03-20T13:05:02Z",
+            "paid_course": 5,
+            "paid_lesson": null,
+            "payment_amount": 12000,
+            "payment_method": "transfer"
+        }
+    },
+    {
+        "model": "users.payments",
+        "pk": 6,
+        "fields": {
+            "user": 7,
+            "payment_date": "2026-03-20T13:05:02Z",
+            "paid_course": 3,
+            "paid_lesson": null,
+            "payment_amount": 15000,
+            "payment_method": "transfer"
+        }
+    },
+    {
+        "model": "users.payments",
+        "pk": 7,
+        "fields": {
+            "user": 7,
+            "payment_date": "2026-03-20T13:05:02Z",
+            "paid_course": null,
+            "paid_lesson": 9,
+            "payment_amount": 2500,
+            "payment_method": "cash"
+        }
+    }
+]
