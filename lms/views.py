@@ -1,20 +1,71 @@
-from rest_framework import generics, viewsets
+from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
 from lms.models import Course, Lesson
 from lms.serializers import (CourseDetailSerializer, CourseSerializer,
                              LessonSerializer)
+from users.models import Subscription
 from users.permissions import IsModerator, IsOwner
 
 # Create your views here.
 
 
 class CourseViewSet(ModelViewSet):
-    """ViewSet-класс для курсов"""
+    """" ViewSet для управления курсами """
 
     queryset = Course.objects.all()
-    serializer_class = CourseSerializer
+
+    def get_serializer_class(self):
+        """
+        Динамический выбор сериализатора.
+        - Для списка (list) → CourseSerializer (без уроков)
+        - Для детального просмотра (retrieve):
+            - Если пользователь купил курс → CourseDetailSerializer (с уроками)
+            - Если пользователь модератор → CourseDetailSerializer (с уроками)
+            - Если пользователь владелец → CourseDetailSerializer (с уроками)
+            - Иначе → CourseSerializer (без уроков)
+        """
+        # Для списка используем базовый сериализатор
+        if self.action == 'list':
+            return CourseSerializer
+
+        # Для детального просмотра
+        if self.action == 'retrieve':
+            request = self.request
+            course = self.get_object()  # текущий курс
+
+            # Проверяем, есть ли доступ к полной версии
+            has_full_access = self._has_full_access(request.user, course)
+
+            if has_full_access:
+                return CourseDetailSerializer
+
+        return CourseSerializer
+
+    def _has_full_access(self, user, course):
+        """
+        Проверяет, имеет ли пользователь доступ к полной версии курса.
+        """
+        # Неавторизованные не имеют доступа
+        if not user or not user.is_authenticated:
+            return False
+
+        # Модераторы имеют доступ
+        if user.groups.filter(name='Moderators').exists():
+            return True
+
+        # Владелец курса имеет доступ
+        if course.owner == user:
+            return True
+
+        # Пользователь купил курс? (проверяем Payment)
+        has_paid = Subscription.objects.filter(
+            user=user,
+            course=course
+        ).exists()
+
+        return has_paid
 
     def get_queryset(self):
         user = self.request.user
@@ -45,16 +96,6 @@ class CourseViewSet(ModelViewSet):
             return [IsAuthenticated()]
 
         return super().get_permissions()
-
-
-class CourseRetrieveAPIView(generics.RetrieveAPIView):
-    """
-    Получение детальной информации о курсе.
-    Включает количество уроков и список всех уроков.
-    """
-
-    serializer_class = CourseDetailSerializer
-    queryset = Course.objects.all()
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
