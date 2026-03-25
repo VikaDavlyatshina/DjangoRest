@@ -1,7 +1,11 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, permissions
+from rest_framework.generics import get_object_or_404
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from users.models import Payments, User
+from lms.models import Course
+from users.models import Payments, User, Subscription
 from users.permissions import IsSelfOrReadOnly
 from users.serializers import (PaymentSerializer, UserCreateSerializer,
                                UserSerializer)
@@ -90,3 +94,47 @@ class PaymentListView(generics.ListAPIView):
 
         # Обычный пользователь — только свои платежи
         return queryset.filter(user=user)
+
+class SubscriptionAPIView(APIView):
+    """
+    Эндпоинт для управления подпиской
+    POST: подписаться/отписаться от курса
+    """
+
+    def post(self, request, *args, **kwargs):
+        """
+        Обработка POST-запроса.
+        """
+
+        # 1) Получаем пользователя
+        user = request.user
+
+        # 2) Получаем id курса из данных запроса
+        course_id = request.data.get("course_id")
+
+        # 3) Проверяем, что ID передан
+        if not course_id:
+            return Response(
+                {"error": "Не указан ID курса"},
+                status=400
+            )
+
+        # 4) Получаем объект курса из базы (или 404)
+        course = get_object_or_404(Course, id=course_id)
+
+        # 5) Получаем объекты подписок по текущему пользователю и курса
+        subscription = Subscription.objects.filter(user=user, course=course)
+
+        # 6) Если подписка у пользователя на этот курс есть - удаляем ее
+        if subscription.exists():
+            subscription.delete()
+            message = f"Ваша подписка на курс {course.title} удалена"
+            is_subscribed = False
+
+        # 7) Если подписки у пользователя на этот курс нет - создаем ее
+        else:
+            Subscription.objects.create(user=user, course=course)
+            message = f"Подписка на курс {course.title} успешно добавлена"
+            is_subscribed = True
+
+        return Response({"message": message, "is_subscribed": is_subscribed})
