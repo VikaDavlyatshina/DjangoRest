@@ -3,6 +3,9 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
+from config import settings
+
+
 # Create your models here.
 
 
@@ -122,3 +125,31 @@ class Payments(models.Model):
         verbose_name = "Платёж"
         verbose_name_plural = "Платежи"
         ordering = ("-payment_date",)
+
+class Subscriptions(models.Model):
+    """Модель подписки пользователя на курс"""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="subscriptions",
+        verbose_name="Подписка пользователя"
+    )
+    course = models.ForeignKey(
+        "lms.Course",
+        on_delete=models.CASCADE,
+        related_name="subscriptions",
+        verbose_name="Курс"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата подписки"
+    )
+
+    class Meta:
+        unique_together = ("user", "course")  # Пользователь не может подписаться дважды на один курс
+        verbose_name = "Подписка"
+        verbose_name_plural = "Подписки"
+
+    def __str__(self):
+        return f"{self.user.email} -> {self.course.title}"
