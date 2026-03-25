@@ -2,20 +2,30 @@ from rest_framework import serializers
 
 from lms.models import Course, Lesson
 from lms.validators import YouTubeLinkValidator
+from users.models import Subscription
 
 
 class CourseSerializer(serializers.ModelSerializer):
     """
-    Базовый сериализатор для модели Course.
-    Используется для базового вывода информации о курсе.
+     Сериализатор курса с признаком подписки.
     """
 
     owner_email = serializers.EmailField(source="owner.email", read_only=True)
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
-        fields = ["id", "title", "description", "owner_email"]
+        fields = ["id", "title", "description", "owner_email", "is_subscribed"]
         read_only_fields = ["id", "owner_email"]
+
+    def get_is_subscribed(self, obj):
+        """Проверяет, подписан ли пользователь на курс"""
+
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return False
+
+        return Subscription.objects.filter(user=request.user, course=obj).exists()
 
 
 class LessonSerializer(serializers.ModelSerializer):
