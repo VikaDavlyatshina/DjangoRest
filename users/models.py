@@ -126,7 +126,7 @@ class Payments(models.Model):
         verbose_name_plural = "Платежи"
         ordering = ("-payment_date",)
 
-class Subscriptions(models.Model):
+class Subscription(models.Model):
     """Модель подписки пользователя на курс"""
 
     user = models.ForeignKey(
