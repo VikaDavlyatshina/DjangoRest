@@ -3,18 +3,21 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
 from lms.models import Course, Lesson
+from lms.paginators import CoursePagination
 from lms.serializers import (CourseDetailSerializer, CourseSerializer,
                              LessonSerializer)
-from users.models import Subscription
+from users.models import Subscription, Payments
 from users.permissions import IsModerator, IsOwner
 
 # Create your views here.
+
 
 
 class CourseViewSet(ModelViewSet):
     """" ViewSet для управления курсами """
 
     queryset = Course.objects.all()
+    pagination_class = CoursePagination
 
     def get_serializer_class(self):
         """
@@ -60,9 +63,9 @@ class CourseViewSet(ModelViewSet):
             return True
 
         # Пользователь купил курс? (проверяем Payment)
-        has_paid = Subscription.objects.filter(
+        has_paid = Payments.objects.filter(
             user=user,
-            course=course
+            paid_course=course
         ).exists()
 
         return has_paid
@@ -70,12 +73,28 @@ class CourseViewSet(ModelViewSet):
     def get_queryset(self):
         user = self.request.user
 
-        # Модератор видит всё
+        if not user.is_authenticated:
+            return Course.objects.none()
+
+        # Модераторы видят всё
         if user.groups.filter(name="Moderators").exists():
             return Course.objects.all()
 
-        # Обычный пользователь — только свои курсы
-        return Course.objects.filter(owner=user)
+        # Обычные пользователи видят:
+        # 1. Свои курсы (где они owner)
+        # 2. Курсы, которые они купили
+        owned_courses = Course.objects.filter(owner=user)
+
+        # Получаем ID курсов, которые пользователь купил
+        purchased_courses_ids = Payments.objects.filter(
+            user=user,
+            paid_course__isnull=False  # только курсы
+        ).values_list('paid_course', flat=True)
+
+        purchased_courses = Course.objects.filter(id__in=purchased_courses_ids)
+
+        # Объединяем
+        return owned_courses | purchased_courses
 
     def perform_create(self, serializer):
         course = serializer.save()
@@ -115,6 +134,7 @@ class LessonListAPIView(generics.ListAPIView):
     """Получение списка всех уроков."""
 
     serializer_class = LessonSerializer
+    pagination_class = CoursePagination
 
     def get_queryset(self):
         user = self.request.user
