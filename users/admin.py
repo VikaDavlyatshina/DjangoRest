@@ -5,7 +5,7 @@ from .models import Payments, User, Subscription
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ("email", "display_groups", "is_staff", "is_active")
+    list_display = ("id", "email", "display_groups", "is_staff", "is_active")
     list_filter = ("is_staff", "is_active")
     search_fields = ("email",)
 
@@ -18,10 +18,10 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Payments)
 class PaymentsAdmin(admin.ModelAdmin):
-    list_display = ("user", "payment_date", "payment_amount", "payment_method", "paid_course", "paid_lesson")
+    list_display = ("id", "user", "payment_date", "payment_amount", "payment_method", "paid_course", "paid_lesson")
     list_filter = ("payment_method",)
     search_fields = ("user__email",)
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
-    list_display = ("user", "course", "created_at")
+    list_display = ("id", "user", "course", "created_at")
