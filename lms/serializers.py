@@ -7,7 +7,7 @@ from users.models import Subscription
 
 class CourseSerializer(serializers.ModelSerializer):
     """
-     Сериализатор курса с признаком подписки.
+    Сериализатор курса с признаком подписки.
     """
 
     owner_email = serializers.EmailField(source="owner.email", read_only=True)
@@ -36,6 +36,7 @@ class LessonSerializer(serializers.ModelSerializer):
 
     owner_email = serializers.EmailField(source="owner.email", read_only=True)
     course_title = serializers.CharField(source="course.title", read_only=True)
+    link = serializers.URLField(validators=[YouTubeLinkValidator()])
 
     class Meta:
         model = Lesson
@@ -49,7 +50,6 @@ class LessonSerializer(serializers.ModelSerializer):
             "owner_email",
         ]
         read_only_fields = ["id", "owner_email", "course_title"]
-        validators = [YouTubeLinkValidator(field="link")]
 
     def validate_course(self, value):
         """
@@ -57,7 +57,7 @@ class LessonSerializer(serializers.ModelSerializer):
         """
         request = self.context.get("request")
 
-        if not request:
+        if not request or not request.user.is_authenticated:
             return value
 
         user = request.user
