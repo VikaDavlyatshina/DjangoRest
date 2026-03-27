@@ -2,7 +2,7 @@ from django.db import models
 from rest_framework import serializers
 
 from lms.models import Course, Lesson
-from users.models import Payments, User
+from users.models import Payments, Subscription, User
 
 
 class UserShortSerializer(serializers.ModelSerializer):
@@ -96,11 +96,11 @@ class PaymentCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payments
-        fields = ['paid_course', 'paid_lesson', 'payment_amount', 'payment_method']
+        fields = ["paid_course", "paid_lesson", "payment_amount", "payment_method"]
 
     def validate(self, data):
         """Проверяем, что указан либо курс, либо урок"""
-        if not data.get('paid_course') and not data.get('paid_lesson'):
+        if not data.get("paid_course") and not data.get("paid_lesson"):
             raise serializers.ValidationError(
                 "Необходимо указать paid_course или paid_lesson"
             )
@@ -187,3 +187,32 @@ class UserSerializer(serializers.ModelSerializer):
             data.pop("last_name", None)
 
         return data
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для подписок
+    """
+
+    course_id = serializers.IntegerField(source="course.id", read_only=True)
+    course_title = serializers.CharField(source="course.title", read_only=True)
+    course_description = serializers.CharField(
+        source="course.description", read_only=True
+    )
+    subscribed_at = serializers.DateTimeField(source="created_at", read_only=True)
+    is_subscribed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Subscription
+        fields = [
+            "id",
+            "course_id",
+            "course_title",
+            "course_description",
+            "subscribed_at",
+            "is_subscribed",
+        ]
+
+    def get_is_subscribed(self, obj):
+        """Всегда True, потому что это список подписок"""
+        return True
