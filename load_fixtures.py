@@ -15,6 +15,8 @@ def load_all_fixtures():
         "lms/fixtures/courses.json",
         "lms/fixtures/lessons.json",
         "users/fixtures/payments.json",
+        "users/fixtures/subscriptions.json"
+
     ]
 
     for fixture in fixtures:

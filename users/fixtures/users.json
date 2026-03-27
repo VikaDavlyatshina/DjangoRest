@@ -58,5 +58,65 @@
       "groups": [],
       "user_permissions": []
     }
+  },
+  {
+    "model": "users.user",
+    "pk": 8,
+    "fields": {
+      "password": "pbkdf2_sha256$870000$1234567890abcdef1234567890abcdef1234567890abcdef",
+      "last_login": null,
+      "is_superuser": false,
+      "first_name": "Елена",
+      "last_name": "Смирнова",
+      "email": "elena@example.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-10T11:00:00Z",
+      "phone": "+79165554433",
+      "city": "Новосибирск",
+      "avatar": "",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "users.user",
+    "pk": 9,
+    "fields": {
+      "password": "pbkdf2_sha256$870000$1234567890abcdef1234567890abcdef1234567890abcdef",
+      "last_login": null,
+      "is_superuser": false,
+      "first_name": "Михаил",
+      "last_name": "Козлов",
+      "email": "mikhail@example.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-02-20T14:00:00Z",
+      "phone": "+79163332211",
+      "city": "Екатеринбург",
+      "avatar": "",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "users.user",
+    "pk": 10,
+    "fields": {
+      "password": "pbkdf2_sha256$870000$1234567890abcdef1234567890abcdef1234567890abcdef",
+      "last_login": null,
+      "is_superuser": false,
+      "first_name": "Ольга",
+      "last_name": "Новикова",
+      "email": "olga@example.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-03-01T16:00:00Z",
+      "phone": "+79164443322",
+      "city": "Нижний Новгород",
+      "avatar": "",
+      "groups": [],
+      "user_permissions": []
+    }
   }
 ]
