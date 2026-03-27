@@ -31,8 +31,6 @@ class Course(models.Model):
         on_delete=models.CASCADE,
         verbose_name="Владелец",
         related_name="courses",
-        blank=True,
-        null=True,
     )
 
     class Meta:
@@ -82,8 +80,6 @@ class Lesson(models.Model):
         on_delete=models.CASCADE,
         verbose_name="Владелец",
         related_name="lessons",
-        blank=True,
-        null=True,
     )
 
     class Meta:
