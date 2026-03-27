@@ -88,6 +88,25 @@ class UserPaymentSerializer(serializers.ModelSerializer):
         ]
 
 
+class PaymentCreateSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для Создания платежа.
+    Используется в PaymentCreateAPIView.
+    """
+
+    class Meta:
+        model = Payments
+        fields = ['paid_course', 'paid_lesson', 'payment_amount', 'payment_method']
+
+    def validate(self, data):
+        """Проверяем, что указан либо курс, либо урок"""
+        if not data.get('paid_course') and not data.get('paid_lesson'):
+            raise serializers.ValidationError(
+                "Необходимо указать paid_course или paid_lesson"
+            )
+        return data
+
+
 class UserCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для создания нового пользователя"""
 

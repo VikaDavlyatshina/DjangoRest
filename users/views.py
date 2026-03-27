@@ -8,7 +8,7 @@ from lms.models import Course
 from users.models import Payments, User, Subscription
 from users.permissions import IsSelfOrReadOnly
 from users.serializers import (PaymentSerializer, UserCreateSerializer,
-                               UserSerializer)
+                               UserSerializer, PaymentCreateSerializer)
 
 
 class UserCreateAPIView(generics.CreateAPIView):
@@ -46,7 +46,7 @@ class UserProfileView(generics.RetrieveUpdateDestroyAPIView):
 class PaymentCreateAPIView(generics.CreateAPIView):
     """Создание платежа"""
 
-    serializer_class = PaymentSerializer
+    serializer_class = PaymentCreateSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
