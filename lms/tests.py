@@ -150,7 +150,7 @@ class LessonTestCase(APITestCase):
 
         self.assertIn("link", response.data, "Ошибка должна быть в поле 'link'")
 
-     # ==================== ТЕСТЫ ОБНОВЛЕНИЯ ====================
+    # ==================== ТЕСТЫ ОБНОВЛЕНИЯ ====================
 
     def test_update_lesson_owner(self):
         """
@@ -256,7 +256,6 @@ class SubscriptionTestCase(APITestCase):
             title="Тестовый курс", description="Для проверки подписки", owner=self.user
         )
 
-
     def test_subscribe_to_course(self):
         """
         Пользователь Может подписаться на курс.
@@ -329,7 +328,7 @@ class SubscriptionTestCase(APITestCase):
 
     def test_subscribe_invalid_course(self):
         """
-         Подписка на несуществующий курс.
+        Подписка на несуществующий курс.
         """
         self.client.force_authenticate(user=self.user)
 
