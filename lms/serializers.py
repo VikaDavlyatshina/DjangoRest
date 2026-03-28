@@ -1,20 +1,31 @@
 from rest_framework import serializers
 
 from lms.models import Course, Lesson
+from lms.validators import YouTubeLinkValidator
+from users.models import Subscription
 
 
 class CourseSerializer(serializers.ModelSerializer):
     """
-    Базовый сериализатор для модели Course.
-    Используется для базового вывода информации о курсе.
+    Сериализатор курса с признаком подписки.
     """
 
     owner_email = serializers.EmailField(source="owner.email", read_only=True)
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = Course
-        fields = ["id", "title", "description", "owner_email"]
+        fields = ["id", "title", "description", "owner_email", "is_subscribed"]
         read_only_fields = ["id", "owner_email"]
+
+    def get_is_subscribed(self, obj):
+        """Проверяет, подписан ли пользователь на курс"""
+
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return False
+
+        return Subscription.objects.filter(user=request.user, course=obj).exists()
 
 
 class LessonSerializer(serializers.ModelSerializer):
@@ -25,6 +36,7 @@ class LessonSerializer(serializers.ModelSerializer):
 
     owner_email = serializers.EmailField(source="owner.email", read_only=True)
     course_title = serializers.CharField(source="course.title", read_only=True)
+    link = serializers.URLField(validators=[YouTubeLinkValidator()])
 
     class Meta:
         model = Lesson
@@ -38,6 +50,29 @@ class LessonSerializer(serializers.ModelSerializer):
             "owner_email",
         ]
         read_only_fields = ["id", "owner_email", "course_title"]
+
+    def validate_course(self, value):
+        """
+        Проверяет, что пользователь может добавить урок в этот курс.
+        """
+        request = self.context.get("request")
+
+        if not request or not request.user.is_authenticated:
+            return value
+
+        user = request.user
+
+        # Модератор может всё
+        if user.groups.filter(name="Moderators").exists():
+            return value
+
+        # Обычный пользователь — только в свои курсы
+        if value.owner != user:
+            raise serializers.ValidationError(
+                "Вы можете добавлять уроки только в свои курсы"
+            )
+
+        return value
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

@@ -1,4 +1,4 @@
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
 class IsModerator(BasePermission):
@@ -29,15 +29,28 @@ class IsOwner(BasePermission):
 
 class IsSelfOrReadOnly(BasePermission):
     """
-    Смотреть можно всех,
-    редактировать — только себя
+    Права доступа:
+    - GET, HEAD, OPTIONS: все авторизованные пользователи
+    - PUT, PATCH: только владелец
+    - DELETE: владелец или администратор
     """
 
     def has_object_permission(self, request, view, obj):
+        # Проверяем, что пользователь авторизован
+        if not request.user or not request.user.is_authenticated:
+            return False
 
-        # GET, HEAD, OPTIONS — можно всем
-        if request.method in ["GET", "HEAD", "OPTIONS"]:
+        # Безопасные методы (GET, HEAD, OPTIONS) — всем авторизованным
+        if request.method in SAFE_METHODS:
             return True
 
-        # PUT/PATCH — только свой профиль
+        # DELETE — владелец или администратор
+        if request.method == "DELETE":
+            # Администратор или суперпользователь может удалять любого
+            if request.user.is_staff or request.user.is_superuser:
+                return True
+            # Обычный пользователь — только свой профиль
+            return obj == request.user
+
+        # PUT, PATCH — только владелец
         return obj == request.user
