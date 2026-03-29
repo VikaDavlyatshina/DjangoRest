@@ -26,6 +26,11 @@ class Course(models.Model):
         blank=True,
         null=True,
     )
+    price = models.PositiveIntegerField(
+        verbose_name="Цена курса",
+        help_text="Цена курса в рублях",
+        default=0,
+    )
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
