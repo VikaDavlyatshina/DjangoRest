@@ -188,3 +188,11 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
     # OTHER SETTINGS
 }
+# Ключи от Stripe(для подключения платежей)
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY')
+
+# Маршрут перехода при успешной оплаты
+STRIPE_SUCCESS_URL = os.getenv('STRIPE_SUCCESS_URL')
+# Маршрут перехода при отмене оплаты
+STRIPE_CANCEL_URL = os.getenv('STRIPE_CANCEL_URL')
