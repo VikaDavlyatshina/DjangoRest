@@ -182,8 +182,8 @@ CORS_ALLOW_ALL_ORIGINS = False
 
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Your Project API',
-    'DESCRIPTION': 'Your project description',
+    'TITLE': 'LMS API',
+    'DESCRIPTION': 'API для управления курсами, уроками, подписками и платежами',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     # OTHER SETTINGS
