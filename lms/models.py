@@ -86,6 +86,13 @@ class Lesson(models.Model):
         verbose_name="Владелец",
         related_name="lessons",
     )
+    price = models.PositiveIntegerField(
+        verbose_name="Цена урока",
+        help_text="Цена в рублях (если урок продаётся отдельно)",
+        blank=True,
+        null=True,
+        default=None
+    )
 
     class Meta:
         verbose_name = "Урок"
