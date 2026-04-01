@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Обновление курса</title>
+</head>
+<body>
+    <h2>Здравствуйте, {{ user_name }}!</h2>
+
+    <p>Курс <strong>"{{ course_title }}"</strong> был обновлен.</p>
+
+    <p>Перейдите по ссылке, чтобы посмотреть новые материалы:</p>
+
+    <p>
+        <a href="http://localhost:8000/courses/{{ course_id }}/">
+            Перейти к курсу
+        </a>
+    </p>
+
+    <p>Спасибо, что используете нашу платформу!</p>
+</body>
+</html>
