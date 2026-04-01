@@ -1,6 +1,9 @@
+from datetime import timedelta
+
 from celery import shared_task
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.html import strip_tags
 
 from config import settings
@@ -9,12 +12,33 @@ from users.models import Subscription
 
 
 @shared_task
+def should_notify_about_update(course):
+    """Проверяет, прошло ли 4 часа после обновления"""
+
+    if not course.updated_at:
+        return True
+
+    # Вычисляем, сколько времени прошло с последнего обновления
+    time_since_update = timezone.now() - course.updated_at
+
+    # Проверяем, прошло ли 4 часа
+    return time_since_update >= timedelta(hours=4)
+
+
+@shared_task
 def send_course_update_notifications(course_id):
-    """Отправляет рассылку об обновлении курса или урока"""
+    """Отправляет рассылку об обновлении курса или урока."""
 
     try:
         # Находим курс
         course = Course.objects.get(id=course_id)
+
+        if not should_notify_about_update(course):
+            # Вычисляем, сколько времени прошло
+            time_since = timezone.now() - course.updated_at
+            hours_since = time_since.total_seconds() / 3600
+
+            return f"Уведомление отложено (прошло {hours_since:.1f} часа(ов) с последнего обновления, нужно 4)"
 
         # Находим подписанных пользователей
         subscriptions = Subscription.objects.filter(course=course)
@@ -29,7 +53,6 @@ def send_course_update_notifications(course_id):
             # Вызываем отдельную задачу для отправки письма
             send_update_email_to_user.delay(
                 user_email=user.email,
-                user_name=user.get_full_name() or user.email,
                 course_title=course.title,
                 course_id=course_id,
             )

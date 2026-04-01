@@ -1,3 +1,4 @@
+from django.utils import timezone
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -244,6 +245,26 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     permission_classes = [IsOwner | IsModerator]
+
+    def perform_update(self, serializer):
+        """
+        Обновление урока.
+        Если после сохранения изменений прошло часов 4 часов -
+         запускает асинхронную рассылку уведомлений.
+        """
+
+        # Сохраняем урок
+        lesson = serializer.save()
+
+        # Получаем курс
+        course = lesson.course
+
+        # Обновляем время последнего изменения курса
+        course.updated_at = timezone.now()
+        course.save(update_fields=["updated_at"])
+
+        # Вызов задачи для отправки писем об обновлении
+        send_course_update_notifications.delay(course.id)
 
 
 @extend_schema_view(
