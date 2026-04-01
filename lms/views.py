@@ -7,6 +7,7 @@ from lms.models import Course, Lesson
 from lms.paginators import CoursePagination
 from lms.serializers import (CourseDetailSerializer, CourseSerializer,
                              LessonSerializer)
+from lms.task import send_course_update_notifications
 from users.models import Payments
 from users.permissions import IsModerator, IsOwner
 
@@ -107,7 +108,22 @@ class CourseViewSet(ModelViewSet):
         return owned | Course.objects.filter(id__in=purchased_ids)
 
     def perform_create(self, serializer):
+        """Создание курса"""
+
+        # Привязка владельца
         serializer.save(owner=self.request.user)
+
+
+    def perform_update(self, serializer):
+        """
+        Обновление курса.
+        После сохранения запускает асинхронную рассылку уведомлений.
+        """
+        # Сохранение обновленного курса
+        course = serializer.save()
+
+        # Вызов задачи для отправки писем об обновлении
+        send_course_update_notifications.delay(course.id)
 
     def get_permissions(self):
         if self.action == "create":
