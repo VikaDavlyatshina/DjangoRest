@@ -1,3 +1,7 @@
+# Чтобы poetry устанавливал только зависимости
+[tool.poetry]
+package-mode = false
+
 [project]
 name = "djangorest"
 version = "0.1.0"
