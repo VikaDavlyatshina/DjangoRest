@@ -14,6 +14,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from celery.schedules import crontab
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
@@ -153,7 +154,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema"
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 SIMPLE_JWT = {
@@ -171,11 +172,11 @@ SIMPLE_JWT = {
 # ]
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:8000',  # Замените на адрес вашего фронтенд-сервера
+    "http://localhost:8000",  # Замените на адрес вашего фронтенд-сервера
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://read-and-write.example.com", #  Замените на адрес вашего фронтенд-сервера
+    "https://read-and-write.example.com",  #  Замените на адрес вашего фронтенд-сервера
     # и добавьте адрес бэкенд-сервера
 ]
 
@@ -183,25 +184,25 @@ CORS_ALLOW_ALL_ORIGINS = False
 
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'LMS API',
-    'DESCRIPTION': 'API для управления курсами, уроками, подписками и платежами',
-    'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
+    "TITLE": "LMS API",
+    "DESCRIPTION": "API для управления курсами, уроками, подписками и платежами",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
     # OTHER SETTINGS
 }
 # Ключи от Stripe(для подключения платежей)
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
-STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY')
+STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
 
 # Маршрут перехода при успешной оплаты
-STRIPE_SUCCESS_URL = os.getenv('STRIPE_SUCCESS_URL')
+STRIPE_SUCCESS_URL = os.getenv("STRIPE_SUCCESS_URL")
 # Маршрут перехода при отмене оплаты
-STRIPE_CANCEL_URL = os.getenv('STRIPE_CANCEL_URL')
+STRIPE_CANCEL_URL = os.getenv("STRIPE_CANCEL_URL")
 
 # Настройки Redis
-REDIS_HOST = os.getenv('REDIS_HOST')
-REDIS_PORT = os.getenv('REDIS_PORT')
-REDIS_DB = os.getenv('REDIS_DB')
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = os.getenv("REDIS_PORT")
+REDIS_DB = os.getenv("REDIS_DB")
 
 
 # Настройка Celery
@@ -215,6 +216,17 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
+# Настройка расписания задачи
+CELERY_BEAT_SCHEDULE = {
+    "block-inactive-users-daily": {
+        "task": "users.tasks.block_inactive_users",  # The name of the task
+        "schedule": crontab(
+            hour=0, minute=0
+        ),  # каждый день в полночь  # How often the task should run
+    },
+    # Add more tasks as needed
+}
 
 # Настройка отправки писем
 EMAIL_HOST = os.getenv("EMAIL_HOST")
