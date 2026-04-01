@@ -4,9 +4,9 @@ from celery import Celery
 from celery.schedules import crontab
 
 # Устанавливаем настройки Django по умолчанию
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
-app = Celery('config')
+app = Celery("config")
 
 # Using a string here means the worker doesn't have to serialize
 # the configuration object to child processes.
@@ -14,5 +14,8 @@ app = Celery('config')
 #   should have a `CELERY_` prefix.
 
 # Загружаем настройки из Django settings
-app.config_from_object('django.conf:settings', namespace='CELERY')
+app.config_from_object("django.conf:settings", namespace="CELERY")
 
+# Load task modules from all registered Django apps.
+# Автоматически находим задачи в приложениях
+app.autodiscover_tasks()
