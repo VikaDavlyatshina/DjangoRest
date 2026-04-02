@@ -259,10 +259,6 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
         # Получаем курс
         course = lesson.course
 
-        # Обновляем время последнего изменения курса
-        course.updated_at = timezone.now()
-        course.save(update_fields=["updated_at"])
-
         # Вызов задачи для отправки писем об обновлении
         send_course_update_notifications.delay(course.id)
 
