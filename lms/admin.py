@@ -12,7 +12,7 @@ class CourseAdmin(admin.ModelAdmin):
     """
 
     # Поля, которые отображаются в списке
-    list_display = ("id", "title", "owner", "description")
+    list_display = ("id", "title", "owner", "description", "price")
 
     # Поля, по которым можно фильтровать
     list_filter = ("title", "owner")
@@ -21,7 +21,7 @@ class CourseAdmin(admin.ModelAdmin):
     search_fields = ("title", "description")
 
     # Поля, которые можно редактировать прямо в списке
-    list_editable = ("title",)
+    list_editable = ("title", "price")
 
     # Сортировка по умолчанию
     ordering = ("-id",)  # минус означает по убыванию

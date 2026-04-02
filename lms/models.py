@@ -26,6 +26,11 @@ class Course(models.Model):
         blank=True,
         null=True,
     )
+    price = models.PositiveIntegerField(
+        verbose_name="Цена курса",
+        help_text="Цена курса в рублях",
+        default=0,
+    )
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -80,6 +85,13 @@ class Lesson(models.Model):
         on_delete=models.CASCADE,
         verbose_name="Владелец",
         related_name="lessons",
+    )
+    price = models.PositiveIntegerField(
+        verbose_name="Цена урока",
+        help_text="Цена в рублях (если урок продаётся отдельно)",
+        blank=True,
+        null=True,
+        default=None
     )
 
     class Meta:

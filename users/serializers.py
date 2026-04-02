@@ -96,7 +96,8 @@ class PaymentCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payments
-        fields = ["paid_course", "paid_lesson", "payment_amount", "payment_method"]
+        fields = ["paid_course", "paid_lesson","payment_method"]
+        read_only_fields = ["payment_amount"]
 
     def validate(self, data):
         """Проверяем, что указан либо курс, либо урок"""
@@ -105,6 +106,23 @@ class PaymentCreateSerializer(serializers.ModelSerializer):
                 "Необходимо указать paid_course или paid_lesson"
             )
         return data
+
+    def create(self, validated_data):
+        # Определяем сумму из модели
+        paid_course = validated_data.get("paid_course")
+        paid_lesson = validated_data.get("paid_lesson")
+
+        if paid_course:
+            amount = paid_course.price
+        elif paid_lesson:
+            amount = paid_lesson.price if paid_lesson.price else paid_lesson.course.price
+        else:
+            amount = 0
+
+        # Добавляем сумму в validated_data
+        validated_data["payment_amount"] = amount
+
+        return super().create(validated_data)
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
