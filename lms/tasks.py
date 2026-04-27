@@ -59,7 +59,7 @@ def send_course_update_notifications(course_id):
 
         # Обновляем время после отправки
         course.updated_at = timezone.now()
-        course.save(update_fields=['updated_at'])
+        course.save(update_fields=["updated_at"])
 
         return f"Запущена отправка {subscriptions.count()} уведомлений о курсе {course.title}"
 

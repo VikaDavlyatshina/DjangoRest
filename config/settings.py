@@ -18,10 +18,10 @@ from celery.schedules import crontab
 from dotenv import load_dotenv
 
 # Проверяем, запущены ли мы в Docker (наличие файла /.dockerenv)
-if os.path.exists('/.dockerenv'):
-    load_dotenv('.env.docker', override=True)
+if os.path.exists("/.dockerenv"):
+    load_dotenv(".env.docker", override=True)
 else:
-    load_dotenv('.env', override=True)
+    load_dotenv(".env", override=True)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -181,7 +181,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://read-and-write.example.com",  #  Замените на адрес вашего фронтенд-сервера
+    "https://read-and-write.example.com",  # Замените на адрес вашего фронтенд-сервера
     # и добавьте адрес бэкенд-сервера
 ]
 
