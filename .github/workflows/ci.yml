@@ -107,30 +107,18 @@ jobs:
     needs: build
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Debug secrets (временно)
-        run: |
-          echo "SERVER_IP is [${{ secrets.SERVER_IP }}]"
-          echo "SSH_USER is [${{ secrets.SSH_USER }}]"
-          echo "DOCKER_HUB_USERNAME is [${{ secrets.DOCKER_HUB_USERNAME }}]"
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
 
       - name: Deploy to Server
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-          SERVER_IP: ${{ secrets.SERVER_IP }}
         run: |
-          echo "Starting deployment to $SERVER_IP"
-          mkdir -p ~/.ssh/
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H "$SERVER_IP" >> ~/.ssh/known_hosts 2>/dev/null
-
-          ssh "$SSH_USER@$SERVER_IP" "
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
             docker stop lms || true
             docker rm lms || true
             docker run -d --name lms -p 8000:8000 ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
-          "
+          EOF
