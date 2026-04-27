@@ -1,57 +1,29 @@
-# ============================================
-# ИМЯ ПАЙПЛАЙНА
-# ============================================
 name: LMS CI/CD Pipeline
 
-# ============================================
-# КОГДА ЗАПУСКАТЬ
-# ============================================
 on: [push, pull_request]
 
-# ============================================
-# ЗАДАЧИ (JOBS)
-# ============================================
 jobs:
 
-  # ==========================================
-  # ЭТАП 1: ЛИНТИНГ
-  # ==========================================
   lint:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-
-      - name: Install Poetry
-        run: pip install poetry
-
-      - name: Install Poetry dependencies
+      - name: Install dependencies
         run: |
+          pip install poetry
           poetry config virtualenvs.create false
           poetry install --no-interaction || true
-
-      - name: Install pip-only dependencies
-        run: |
-          pip install django-celery-beat==2.9.0
-          pip install django-timezone-field==7.2.1
-          pip install python-crontab==3.3.0
-          pip install cron-descriptor==1.4.5
-
+          # --- РЕШАЮЩИЙ МОМЕНТ: принудительно переустановить проблемные пакеты через pip ---
+          pip install --upgrade django-celery-beat django-timezone-field python-crontab cron-descriptor
       - name: Run Flake8
         run: flake8 . --max-line-length=119
 
-  # ==========================================
-  # ЭТАП 2: ТЕСТЫ
-  # ==========================================
   test:
     runs-on: ubuntu-latest
     needs: lint
-
     services:
       postgres:
         image: postgres:17-alpine
@@ -66,34 +38,20 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-
-      - name: Install Poetry
-        run: pip install poetry
-
-      - name: Install Poetry dependencies
+      - name: Install dependencies
         run: |
+          pip install poetry
           poetry config virtualenvs.create false
           poetry install --no-interaction || true
-
-      - name: Install pip-only dependencies
-        run: |
-          pip install django-celery-beat==2.9.0
-          pip install django-timezone-field==7.2.1
-          pip install python-crontab==3.3.0
-          pip install cron-descriptor==1.4.5
-
+          # --- РЕШАЮЩИЙ МОМЕНТ: принудительно переустановить проблемные пакеты через pip ---
+          pip install --upgrade django-celery-beat django-timezone-field python-crontab cron-descriptor
       - name: Verify celery-beat
-        run: python -c "import django_celery_beat; print('Celery Beat OK')"
-
+        run: python -c "import django_celery_beat; print('✅ Celery Beat OK')"
       - name: Run migrations
         env:
           DB_NAME: test_db
@@ -104,7 +62,6 @@ jobs:
           SECRET_KEY: test-secret-key-for-tests-only
           DEBUG: "True"
         run: python manage.py migrate
-
       - name: Run tests
         env:
           DB_NAME: test_db
@@ -116,39 +73,26 @@ jobs:
           DEBUG: "True"
         run: python manage.py test
 
-  # ==========================================
-  # ЭТАП 3: СБОРКА DOCKER-ОБРАЗА
-  # ==========================================
   build:
     runs-on: ubuntu-latest
     needs: test
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Log in to Docker Hub
         run: echo ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
-
       - name: Build Docker image
         run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }} .
-
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
 
-  # ==========================================
-  # ЭТАП 4: ДЕПЛОЙ
-  # ==========================================
   deploy:
     runs-on: ubuntu-latest
     needs: build
-
     steps:
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.8.1
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
-
       - name: Deploy to Server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
