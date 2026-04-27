@@ -69,9 +69,13 @@ jobs:
           DB_PASSWORD: test_password
           HOST: 127.0.0.1
           PORT: 5432
+          REDIS_HOST: 127.0.0.1
+          REDIS_PORT: 6379
+          REDIS_DB: 0
           SECRET_KEY: test-secret-key-for-tests-only
           DEBUG: "True"
         run: python manage.py migrate
+
       - name: Run tests
         env:
           DB_NAME: test_db
@@ -79,6 +83,9 @@ jobs:
           DB_PASSWORD: test_password
           HOST: 127.0.0.1
           PORT: 5432
+          REDIS_HOST: 127.0.0.1
+          REDIS_PORT: 6379
+          REDIS_DB: 0
           SECRET_KEY: test-secret-key-for-tests-only
           DEBUG: "True"
         run: python manage.py test
