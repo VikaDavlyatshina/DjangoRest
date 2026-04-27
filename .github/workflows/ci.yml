@@ -19,7 +19,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest              # Виртуальная машина для этой задачи
     steps:
-      - uses: actions/checkout@v3       # Скачать код из репозитория
+      - uses: actions/checkout@v4     # Скачать код из репозитория
 
       - uses: actions/setup-python@v5 # Установить Python
         with:
@@ -64,7 +64,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
 
@@ -98,7 +98,7 @@ jobs:
     needs: test                         # Запускать ТОЛЬКО после успешных тестов
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Log in to Docker Hub       # Вход в аккаунт Docker Hub
         run: echo ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
