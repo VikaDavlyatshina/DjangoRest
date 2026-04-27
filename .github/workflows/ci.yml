@@ -14,76 +14,68 @@ on: [push, pull_request]          # При каждом пуше и создан
 jobs:
 
   # ==========================================
-  # ЭТАП 1: ЛИНТИНГ (проверка стиля кода)
+  # ЭТАП 1: ЛИНТИНГ
   # ==========================================
   lint:
-    runs-on: ubuntu-latest              # Виртуальная машина для этой задачи
-    steps:
-      - uses: actions/checkout@v4     # Скачать код из репозитория
-
-      - uses: actions/setup-python@v5 # Установить Python
-        with:
-          python-version: '3.13'        # Версия Python (как у вас в Dockerfile)
-
-      - name: Install Poetry            # Установить менеджер зависимостей
-        run: pip install poetry
-
-      - name: Install pip-only dependencies FIRST
-        run: pip install django-celery-beat==2.9.0 django-timezone-field==7.2.1 python-crontab==3.3.0 cron-descriptor==1.4.5
-
-      - name: Install Poetry dependencies
-        run: |
-          poetry config virtualenvs.create false   # Не создавать виртуальное окружение
-          poetry install --no-interaction          # Установить из pyproject.toml
-
-      - name: Run Flake8                # Запустить проверку стиля кода
-        run: flake8 . --max-line-length=119                # Точка = проверить все файлы в проекте
-
-  # ==========================================
-  # ЭТАП 2: ТЕСТЫ (проверка работы кода)
-  # ==========================================
-  test:
     runs-on: ubuntu-latest
-    needs: lint                         # Запускать ТОЛЬКО после успешного линтинга
-
-    # --------------------------------------
-    # Поднимаем тестовую базу данных
-    # --------------------------------------
-    services:
-      postgres:
-        image: postgres:17-alpine        # Та же версия, что в docker-compose
-        env:
-          POSTGRES_DB: test_db           # Название тестовой БД
-          POSTGRES_USER: test_user       # Имя пользователя для тестов
-          POSTGRES_PASSWORD: test_password  # Пароль для тестов
-        ports:
-          - 5432:5432                    # Стандартный порт PostgreSQL
-        options: >-                      # Ожидание готовности БД
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.13'
 
       - name: Install Poetry
         run: pip install poetry
 
-      - name: Install pip-only dependencies FIRST
-        run: pip install django-celery-beat==2.9.0 django-timezone-field==7.2.1 python-crontab==3.3.0 cron-descriptor==1.4.5
-
-      - name: Install Poetry dependencies
+      - name: Install dependencies
         run: |
           poetry config virtualenvs.create false
           poetry install --no-interaction
 
-      - name: Ensure celery-beat is installed
-        run: python -c "import django_celery_beat; print('CELERY BEAT OK')"
+      - name: Run flake8
+        run: flake8 . --max-line-length=119
+
+  # ==========================================
+  # ЭТАП 2: ТЕСТЫ
+  # ==========================================
+  test:
+    runs-on: ubuntu-latest
+    needs: lint
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: |
+          poetry config virtualenvs.create false
+          poetry install --no-interaction
 
       - name: Run migrations
         env:
@@ -92,8 +84,8 @@ jobs:
           DB_PASSWORD: test_password
           HOST: 127.0.0.1
           PORT: 5432
-          SECRET_KEY: test-secret-key-for-tests-only
-          DEBUG: "True"
+          SECRET_KEY: django-insecure-test-key-for-ci
+          DEBUG: "False"
         run: python manage.py migrate
 
       - name: Run tests
@@ -103,28 +95,36 @@ jobs:
           DB_PASSWORD: test_password
           HOST: 127.0.0.1
           PORT: 5432
-          SECRET_KEY: test-secret-key-for-tests-only
-          DEBUG: "True"
+          SECRET_KEY: django-insecure-test-key-for-ci
+          DEBUG: "False"
         run: python manage.py test
 
   # ==========================================
-  # ЭТАП 3: СБОРКА И ПУБЛИКАЦИЯ DOCKER-ОБРАЗА
+  # ЭТАП 3: СБОРКА DOCKER-ОБРАЗА
   # ==========================================
   build:
     runs-on: ubuntu-latest
-    needs: test                         # Запускать ТОЛЬКО после успешных тестов
+    needs: test
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Log in to Docker Hub       # Вход в аккаунт Docker Hub
-        run: echo ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }} .
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Push Docker image
-        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
 
   # ==========================================
   # ЭТАП 4: ДЕПЛОЙ НА СЕРВЕР
@@ -132,18 +132,21 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.8.1
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          ssh-private-key: ${{ secrets.SSH_KEY }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Deploy to Server
+      - name: Deploy to server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
             docker stop lms || true
             docker rm lms || true
-            docker run -d --name lms -p 8000:8000 ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
+            docker run -d --name lms -p 8000:8000 \
+              --env-file /home/lms/.env.docker \
+              ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
           EOF
