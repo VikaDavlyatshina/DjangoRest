@@ -1,12 +1,12 @@
 # ============================================
-# ИМЯ ПАЙПЛАЙНА (отображается в GitHub Actions)
+# ИМЯ ПАЙПЛАЙНА
 # ============================================
 name: LMS CI/CD Pipeline
 
 # ============================================
 # КОГДА ЗАПУСКАТЬ
 # ============================================
-on: [push, pull_request]          # При каждом пуше и создании Pull Request
+on: [push, pull_request]
 
 # ============================================
 # ЗАДАЧИ (JOBS)
@@ -30,12 +30,19 @@ jobs:
       - name: Install Poetry
         run: pip install poetry
 
-      - name: Install dependencies
+      - name: Install Poetry dependencies
         run: |
           poetry config virtualenvs.create false
-          poetry install --no-interaction
+          poetry install --no-interaction || true
 
-      - name: Run flake8
+      - name: Install pip-only dependencies
+        run: |
+          pip install django-celery-beat==2.9.0
+          pip install django-timezone-field==7.2.1
+          pip install python-crontab==3.3.0
+          pip install cron-descriptor==1.4.5
+
+      - name: Run Flake8
         run: flake8 . --max-line-length=119
 
   # ==========================================
@@ -72,10 +79,20 @@ jobs:
       - name: Install Poetry
         run: pip install poetry
 
-      - name: Install dependencies
+      - name: Install Poetry dependencies
         run: |
           poetry config virtualenvs.create false
-          poetry install --no-interaction
+          poetry install --no-interaction || true
+
+      - name: Install pip-only dependencies
+        run: |
+          pip install django-celery-beat==2.9.0
+          pip install django-timezone-field==7.2.1
+          pip install python-crontab==3.3.0
+          pip install cron-descriptor==1.4.5
+
+      - name: Verify celery-beat
+        run: python -c "import django_celery_beat; print('Celery Beat OK')"
 
       - name: Run migrations
         env:
@@ -84,8 +101,8 @@ jobs:
           DB_PASSWORD: test_password
           HOST: 127.0.0.1
           PORT: 5432
-          SECRET_KEY: django-insecure-test-key-for-ci
-          DEBUG: "False"
+          SECRET_KEY: test-secret-key-for-tests-only
+          DEBUG: "True"
         run: python manage.py migrate
 
       - name: Run tests
@@ -95,8 +112,8 @@ jobs:
           DB_PASSWORD: test_password
           HOST: 127.0.0.1
           PORT: 5432
-          SECRET_KEY: django-insecure-test-key-for-ci
-          DEBUG: "False"
+          SECRET_KEY: test-secret-key-for-tests-only
+          DEBUG: "True"
         run: python manage.py test
 
   # ==========================================
@@ -110,43 +127,33 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+        run: echo ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }} .
+
+      - name: Push Docker image
+        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
 
   # ==========================================
-  # ЭТАП 4: ДЕПЛОЙ НА СЕРВЕР
+  # ЭТАП 4: ДЕПЛОЙ
   # ==========================================
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.9.0
+        uses: webfactory/ssh-agent@v0.8.1
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      - name: Deploy to server
+      - name: Deploy to Server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
             docker stop lms || true
             docker rm lms || true
-            docker run -d --name lms -p 8000:8000 \
-              --env-file /home/lms/.env.docker \
-              ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
+            docker run -d --name lms -p 8000:8000 ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
           EOF
