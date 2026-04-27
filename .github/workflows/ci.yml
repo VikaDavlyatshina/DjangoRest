@@ -1,0 +1,144 @@
+# ============================================
+# ИМЯ ПАЙПЛАЙНА (отображается в GitHub Actions)
+# ============================================
+name: LMS CI/CD Pipeline
+
+# ============================================
+# КОГДА ЗАПУСКАТЬ
+# ============================================
+on: [push, pull_request]          # При каждом пуше и создании Pull Request
+
+# ============================================
+# ЗАДАЧИ (JOBS)
+# ============================================
+jobs:
+
+  # ==========================================
+  # ЭТАП 1: ЛИНТИНГ (проверка стиля кода)
+  # ==========================================
+  lint:
+    runs-on: ubuntu-latest              # Виртуальная машина для этой задачи
+    steps:
+      - uses: actions/checkout@v3       # Скачать код из репозитория
+
+      - uses: actions/setup-python@v4   # Установить Python
+        with:
+          python-version: '3.13'        # Версия Python (как у вас в Dockerfile)
+
+      - name: Install Poetry            # Установить менеджер зависимостей
+        run: pip install poetry
+
+      - name: Install dependencies      # Установить все библиотеки проекта
+        run: |
+          poetry config virtualenvs.create false   # Не создавать виртуальное окружение
+          poetry install --no-interaction          # Установить из pyproject.toml
+
+      - name: Run Flake8                # Запустить проверку стиля кода
+        run: flake8 .                   # Точка = проверить все файлы в проекте
+
+  # ==========================================
+  # ЭТАП 2: ТЕСТЫ (проверка работы кода)
+  # ==========================================
+  test:
+    runs-on: ubuntu-latest
+    needs: lint                         # Запускать ТОЛЬКО после успешного линтинга
+
+    # --------------------------------------
+    # Поднимаем тестовую базу данных
+    # --------------------------------------
+    services:
+      postgres:
+        image: postgres:17-alpine        # Та же версия, что в docker-compose
+        env:
+          POSTGRES_DB: test_db           # Название тестовой БД
+          POSTGRES_USER: test_user       # Имя пользователя для тестов
+          POSTGRES_PASSWORD: test_password  # Пароль для тестов
+        ports:
+          - 5432:5432                    # Стандартный порт PostgreSQL
+        options: >-                      # Ожидание готовности БД
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install dependencies
+        run: |
+          poetry config virtualenvs.create false
+          poetry install --no-interaction
+
+      - name: Run migrations             # Применить миграции для тестовой БД
+        env:
+          DATABASE_URL: postgres://test_user:test_password@localhost:5432/test_db
+          SECRET_KEY: test-secret-key-for-tests-only
+          DEBUG: "True"
+        run: python manage.py migrate
+
+      - name: Run tests                  # Запустить тесты Django
+        env:
+          DATABASE_URL: postgres://test_user:test_password@localhost:5432/test_db
+          SECRET_KEY: test-secret-key-for-tests-only
+          DEBUG: "True"
+        run: python manage.py test
+
+  # ==========================================
+  # ЭТАП 3: СБОРКА И ПУБЛИКАЦИЯ DOCKER-ОБРАЗА
+  # ==========================================
+  build:
+    runs-on: ubuntu-latest
+    needs: test                         # Запускать ТОЛЬКО после успешных тестов
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub       # Вход в аккаунт Docker Hub
+        run: echo ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+        # secrets.DOCKER_HUB_ACCESS_TOKEN — токен из GitHub Secrets
+        # secrets.DOCKER_HUB_USERNAME — логин из GitHub Secrets
+
+      - name: Build Docker image         # Собрать образ из Dockerfile
+        run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }} .
+        # -t = имя образа (логин/название:версия)
+        # ${{ github.sha }} = хеш коммита (уникальный идентификатор)
+
+      - name: Push Docker image          # Отправить образ в Docker Hub
+        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
+
+  # ==========================================
+  # ЭТАП 4: ДЕПЛОЙ НА СЕРВЕР
+  # ==========================================
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build                        # Запускать ТОЛЬКО после сборки образа
+
+    steps:
+      - name: Set up SSH                # Настроить SSH-подключение к серверу
+        uses: webfactory/ssh-agent@v0.8.1
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+          # secrets.SSH_KEY — ваш приватный ключ из GitHub Secrets
+
+      - name: Deploy to Server           # Деплой на сервер
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            # Скачать новый образ из Docker Hub
+            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
+
+            # Остановить старый контейнер (если существует)
+            docker stop lms || true
+
+            # Удалить старый контейнер (если существует)
+            docker rm lms || true
+
+            # Запустить новый контейнер
+            docker run -d --name lms -p 8000:8000 ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
+          EOF

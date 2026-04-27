@@ -1,0 +1,32 @@
+.env
+.env.docker
+*.pem
+*_rsa
+id_rsa*
+
+# Git и IDE
+.git
+.gitignore
+.dockerignore
+README.md
+.idea/
+.vscode/
+
+# Python и виртуальное окружение
+# Внутри контейнера своё окружение
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Локальная БД и медиафайлы (НЕ НУЖНЫ НА СЕРВЕРЕ)
+# Данные будут в отдельных Docker-томах
+*.sqlite3
+*.db
+media/
+
+# Статика (будет собрана заново в контейнере)
+static/
+staticfiles/
