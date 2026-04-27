@@ -29,11 +29,8 @@ RUN poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-ansi
 
 # Устанавливаем pip-зависимости (которые не работают через Poetry)
-RUN pip install --no-cache-dir \
-    django-celery-beat==2.9.0 \
-    django-timezone-field==7.2.1 \
-    python-crontab==3.3.0 \
-    cron-descriptor==1.4.5
+COPY requirements-pip.txt .
+RUN pip install --no-cache-dir -r requirements-pip.txt
 
 # Копируем весь код проекта
 COPY . .

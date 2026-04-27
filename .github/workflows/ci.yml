@@ -33,6 +33,9 @@ jobs:
           poetry config virtualenvs.create false   # Не создавать виртуальное окружение
           poetry install --no-interaction          # Установить из pyproject.toml
 
+      - name: Install pip-only dependencies
+        run: pip install -r requirements-pip.txt
+
       - name: Run Flake8                # Запустить проверку стиля кода
         run: flake8 . --max-line-length=119                # Точка = проверить все файлы в проекте
 
@@ -75,6 +78,9 @@ jobs:
         run: |
           poetry config virtualenvs.create false
           poetry install --no-interaction
+
+      - name: Install pip-only dependencies
+        run: pip install -r requirements-pip.txt
 
       - name: Run migrations             # Применить миграции для тестовой БД
         env:
