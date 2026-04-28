@@ -1,0 +1,176 @@
+# ============================================
+# ИМЯ ПАЙПЛАЙНА (отображается в GitHub Actions)
+# ============================================
+name: LMS CI/CD Pipeline
+
+# ============================================
+# КОГДА ЗАПУСКАТЬ
+# ============================================
+on: [push, pull_request]
+
+# ============================================
+# ЗАДАЧИ (JOBS)
+# ============================================
+jobs:
+
+  # ==========================================
+  # ЭТАП 1: ЛИНТИНГ (проверка стиля кода)
+  # ==========================================
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      # 1) Скачать код из репозитория
+      - uses: actions/checkout@v4
+
+      # 2) Установить Python
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      # 3) Установить ТОЛЬКО Flake8 (быстро, без Poetry)
+      - name: Install flake8 only
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+
+      # 4) Запустить линтер
+      - name: Run Flake8
+        run: flake8 . --max-line-length=119
+
+  # ==========================================
+  # ЭТАП 2: ТЕСТЫ (запуск Django-тестов)
+  # ==========================================
+  test:
+    runs-on: ubuntu-latest
+    needs: lint                         # Ждать успешного линтинга
+
+    # --------------------------------------
+    # Сервисы (PostgreSQL + Redis)
+    # --------------------------------------
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # 1) Скачать код
+      - uses: actions/checkout@v4
+
+      # 2) Установить Python
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      # 3) Установить Poetry (менеджер зависимостей)
+      - name: Install Poetry
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+
+      # 4) Установить основные зависимости через Poetry
+      - name: Install project dependencies (Poetry)
+        run: |
+          poetry config virtualenvs.create false
+          poetry install --no-interaction
+
+      # 5) Установить проблемные пакеты через pip (из файла)
+      - name: Install problematic packages (pip)
+        run: |
+          pip install --upgrade -r requirements-pip.txt
+
+      # 6) Применить миграции
+      - name: Run migrations
+        env:
+          DB_NAME: test_db
+          DB_USER: test_user
+          DB_PASSWORD: test_password
+          HOST: 127.0.0.1
+          PORT: 5432
+          REDIS_HOST: 127.0.0.1
+          REDIS_PORT: 6379
+          REDIS_DB: 0
+          SECRET_KEY: test-secret
+          DEBUG: "True"
+        run: python manage.py migrate
+
+      # 7) Запустить тесты
+      - name: Run tests
+        env:
+          DB_NAME: test_db
+          DB_USER: test_user
+          DB_PASSWORD: test_password
+          HOST: 127.0.0.1
+          PORT: 5432
+          REDIS_HOST: 127.0.0.1
+          REDIS_PORT: 6379
+          REDIS_DB: 0
+          SECRET_KEY: test-secret
+          DEBUG: "True"
+        run: python manage.py test
+
+  # ==========================================
+  # ЭТАП 3: СБОРКА И ПУБЛИКАЦИЯ DOCKER-ОБРАЗА
+  # ==========================================
+  build:
+    runs-on: ubuntu-latest
+    needs: test                         # Ждать успешных тестов
+
+    steps:
+      # 1) Скачать код
+      - uses: actions/checkout@v4
+
+      # 2) Войти в Docker Hub (используя секреты)
+      - name: Login to Docker Hub
+        run: echo ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
+
+      # 3) Собрать и отправить образ
+      - name: Build and Push Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }} .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
+
+  # ==========================================
+  # ЭТАП 4: ДЕПЛОЙ НА СЕРВЕР
+  # ==========================================
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build                        # Ждать успешной сборки
+
+    steps:
+      # 1) Скачать код
+      - uses: actions/checkout@v4
+
+      # 2) Настроить SSH-подключение
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      # 3) Деплой: стянуть образ и запустить контейнер
+      - name: Deploy to Server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
+            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
+            docker stop lms || true
+            docker rm lms || true
+            docker run -d --name lms -p 8000:8000 ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
+          "
