@@ -10,7 +10,7 @@ class YouTubeLinkValidator:
     YOUTUBE_PATTERN = re.compile(
         r"""
         ^                       # начало строки
-        https://                # протокол HTTPS 
+        https://                # протокол HTTPS
         (?:www\.)?              # опционально: www.
         (?:                     # группа без захвата для доменов
             youtube\.com        # вариант 1: youtube.com
