@@ -17,10 +17,8 @@ from pathlib import Path
 from celery.schedules import crontab
 from dotenv import load_dotenv
 
-# Проверяем, запущены ли мы в Docker (наличие файла /.dockerenv)
-if os.path.exists("/.dockerenv"):
-    load_dotenv("/app/.env.docker", override=True)
-else:
+# Локально читаем .env, в Docker переменные уже загружены через env_file
+if not os.path.exists("/.dockerenv"):
     load_dotenv(".env", override=True)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
