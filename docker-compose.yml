@@ -4,6 +4,8 @@ services:
   # База данных
   postgres:
     image: postgres:17-alpine
+    env_file:
+      - .env.docker
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
@@ -35,17 +37,8 @@ services:
     command: sh -c "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000"
     expose:
       - "8000"
-    environment:
-      - SECRET_KEY=${SECRET_KEY}
-      - DEBUG=${DEBUG}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - HOST=${HOST}
-      - PORT=${PORT}
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
-      - REDIS_DB=${REDIS_DB}
+    env_file:
+      - .env.docker
     depends_on:
       postgres:
         condition: service_healthy
@@ -56,17 +49,8 @@ services:
   celery:
     build: .
     command: celery -A config worker -l info
-    environment:
-      - SECRET_KEY=${SECRET_KEY}
-      - DEBUG=${DEBUG}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - HOST=${HOST}
-      - PORT=${PORT}
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
-      - REDIS_DB=${REDIS_DB}
+    env_file:
+      - .env.docker
     depends_on:
       postgres:
         condition: service_healthy
@@ -79,17 +63,8 @@ services:
   celery-beat:
     build: .
     command: celery -A config beat -l info
-    environment:
-      - SECRET_KEY=${SECRET_KEY}
-      - DEBUG=${DEBUG}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - HOST=${HOST}
-      - PORT=${PORT}
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
-      - REDIS_DB=${REDIS_DB}
+    env_file:
+      - .env.docker
     depends_on:
       postgres:
         condition: service_healthy

@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 
 # Проверяем, запущены ли мы в Docker (наличие файла /.dockerenv)
 if os.path.exists("/.dockerenv"):
-    load_dotenv(".env.docker", override=True)
+    load_dotenv("/app/.env.docker", override=True)
 else:
     load_dotenv(".env", override=True)
 
