@@ -175,6 +175,9 @@ jobs:
             cd /home/${{ secrets.SSH_USER }}/app
 
             docker compose down
+          
+            docker stop lms 2>/dev/null || true
+            docker rm lms 2>/dev/null || true
 
             SECRET_KEY='${{ secrets.DJANGO_SECRET_KEY }}' \
             DEBUG='True' \
