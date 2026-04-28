@@ -161,14 +161,12 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      # Копируем файлы проекта на сервер
       - name: Copy project files
         run: |
           rsync -avz -e "ssh -o StrictHostKeyChecking=no" \
             --exclude '.git' --exclude '__pycache__' --exclude '.venv' \
             ./ ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SSH_USER }}/app/
 
-      # Запускаем приложение через docker compose
       - name: Deploy with Docker Compose
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} 'bash -s' << 'EOF'
@@ -188,5 +186,5 @@ jobs:
           ENVEOF
           
           docker compose down
-          docker compose up -d --build
+          docker compose up -d
           EOF
