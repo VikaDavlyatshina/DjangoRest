@@ -44,6 +44,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    volumes:
+      - static_volume:/app/staticfiles
 
   # Celery Worker
   celery:
