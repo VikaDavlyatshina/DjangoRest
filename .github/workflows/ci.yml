@@ -149,7 +149,7 @@ jobs:
           docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }} .
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
 
-   # ==========================================
+     # ==========================================
   # ЭТАП 4: ДЕПЛОЙ НА СЕРВЕР
   # ==========================================
   deploy:
@@ -161,30 +161,30 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
+      # 1. Копируем файлы на сервер
       - name: Copy project files
         run: |
           rsync -avz -e "ssh -o StrictHostKeyChecking=no" \
             --exclude '.git' --exclude '__pycache__' --exclude '.venv' \
             ./ ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SSH_USER }}/app/
 
+      # 2. Запускаем контейнеры, передав переменные окружения напрямую
       - name: Deploy with Docker Compose
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} 'bash -s' << 'EOF'
-          cd /home/${{ secrets.SSH_USER }}/app
-          
-          cat > .env.docker << ENVEOF
-          SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}
-          DEBUG=True
-          DB_NAME=${{ secrets.DB_NAME }}
-          DB_USER=${{ secrets.DB_USER }}
-          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-          HOST=postgres
-          PORT=5432
-          REDIS_HOST=redis
-          REDIS_PORT=6379
-          REDIS_DB=0
-          ENVEOF
-          
-          docker compose down
-          docker compose up -d
-          EOF
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
+            cd /home/${{ secrets.SSH_USER }}/app
+
+            docker compose down
+
+            SECRET_KEY='${{ secrets.DJANGO_SECRET_KEY }}' \
+            DEBUG='True' \
+            DB_NAME='${{ secrets.DB_NAME }}' \
+            DB_USER='${{ secrets.DB_USER }}' \
+            DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
+            HOST='postgres' \
+            PORT='5432' \
+            REDIS_HOST='redis' \
+            REDIS_PORT='6379' \
+            REDIS_DB='0' \
+            docker compose up -d
+          "
