@@ -1,6 +1,7 @@
 version: '3.9'
 
 services:
+  # База данных
   postgres:
     image: postgres:17-alpine
     environment:
@@ -17,6 +18,7 @@ services:
       timeout: 5s
       retries: 5
 
+  # Redis
   redis:
     image: redis:7-alpine
     ports:
@@ -27,11 +29,12 @@ services:
       timeout: 5s
       retries: 5
 
+  # Django (Gunicorn)
   backend:
     build: .
-    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
-    ports:
-      - "8000:8000"
+    command: sh -c "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+    expose:
+      - "8000"
     env_file:
       - .env.docker
     depends_on:
@@ -40,6 +43,7 @@ services:
       redis:
         condition: service_healthy
 
+  # Celery Worker
   celery:
     build: .
     command: celery -A config worker -l info
@@ -53,6 +57,7 @@ services:
       backend:
         condition: service_started
 
+  # Celery Beat
   celery-beat:
     build: .
     command: celery -A config beat -l info
@@ -66,5 +71,18 @@ services:
       backend:
         condition: service_started
 
+  # Ngnix
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - static_volume:/app/staticfiles
+    depends_on:
+      - backend
+    restart: always
+
 volumes:
   postgres_data:
+  static_volume:
