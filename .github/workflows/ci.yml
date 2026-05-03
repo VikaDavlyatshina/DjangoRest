@@ -99,8 +99,8 @@ jobs:
           DB_NAME: test_db
           DB_USER: test_user
           DB_PASSWORD: test_password
-          HOST: 127.0.0.1
-          PORT: 5432
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
           REDIS_HOST: 127.0.0.1
           REDIS_PORT: 6379
           REDIS_DB: 0
@@ -114,8 +114,8 @@ jobs:
           DB_NAME: test_db
           DB_USER: test_user
           DB_PASSWORD: test_password
-          HOST: 127.0.0.1
-          PORT: 5432
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
           REDIS_HOST: 127.0.0.1
           REDIS_PORT: 6379
           REDIS_DB: 0
@@ -172,8 +172,8 @@ jobs:
             echo \"DB_NAME=${{ secrets.DB_NAME }}\" >> .env.docker
             echo \"DB_USER=${{ secrets.DB_USER }}\" >> .env.docker
             echo \"DB_PASSWORD=${{ secrets.DB_PASSWORD }}\" >> .env.docker
-            echo \"HOST=postgres\" >> .env.docker
-            echo \"PORT=5432\" >> .env.docker
+            echo \"DB_HOST=postgres\" >> .env.docker
+            echo \"DB_PORT=5432\" >> .env.docker
             echo \"REDIS_HOST=redis\" >> .env.docker
             echo \"REDIS_PORT=6379\" >> .env.docker
             echo \"REDIS_DB=0\" >> .env.docker
