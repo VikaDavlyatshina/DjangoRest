@@ -93,12 +93,7 @@ jobs:
           poetry config virtualenvs.create false
           poetry install --no-interaction
 
-      # 5) Установить проблемные пакеты через pip (из файла)
-      - name: Install problematic packages (pip)
-        run: |
-          pip install --upgrade -r requirements-pip.txt
-
-      # 6) Применить миграции
+      # 5) Применить миграции
       - name: Run migrations
         env:
           DB_NAME: test_db
@@ -113,7 +108,7 @@ jobs:
           DEBUG: "True"
         run: python manage.py migrate
 
-      # 7) Запустить тесты
+      # 6) Запустить тесты
       - name: Run tests
         env:
           DB_NAME: test_db
