@@ -10,7 +10,7 @@ authors = [
     {name = "Davlystshina Victoria",email = "vika.davlyatshina@mail.ru"}
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = "^3.13"
 dependencies = [
     "django (>=6.0.3,<7.0.0)",
     "djangorestframework (>=3.16.1,<4.0.0)",
@@ -24,7 +24,6 @@ dependencies = [
     "djangorestframework-stubs (>=3.16.8,<4.0.0)",
     "djangorestframework-simplejwt (>=5.5.1,<6.0.0)",
     "coverage (>=7.13.5,<8.0.0)",
-    "drf-yasg (>=1.21.15,<2.0.0)",
     "django-cors-headers (>=4.9.0,<5.0.0)",
     "requests (>=2.33.0,<3.0.0)",
     "drf-spectacular (>=0.29.0,<0.30.0)",
@@ -33,6 +32,8 @@ dependencies = [
     "celery (>=5.6.3,<6.0.0)",
     "eventlet (>=0.40.4,<0.41.0)",
     "gunicorn (>=25.3.0,<26.0.0)",
+    "django-timezone-field (>=7.2.1,<8.0.0)",
+    "django-celery-beat (>=2.9.0,<3.0.0)",
 ]
 
 
