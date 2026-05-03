@@ -1,5 +1,5 @@
 # ============================================
-# ИМЯ ПАЙПЛАЙНА (отображается в GitHub Actions)
+# ИМЯ ПАЙПЛАЙНА
 # ============================================
 name: LMS CI/CD Pipeline
 
@@ -14,39 +14,28 @@ on: [push, pull_request]
 jobs:
 
   # ==========================================
-  # ЭТАП 1: ЛИНТИНГ (проверка стиля кода)
+  # ЭТАП 1: ЛИНТИНГ
   # ==========================================
   lint:
     runs-on: ubuntu-latest
     steps:
-      # 1) Скачать код из репозитория
       - uses: actions/checkout@v4
-
-      # 2) Установить Python
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-
-      # 3) Установить ТОЛЬКО Flake8 (быстро, без Poetry)
-      - name: Install flake8 only
+      - name: Install flake8
         run: |
           python -m pip install --upgrade pip
           pip install flake8
-
-      # 4) Запустить линтер
       - name: Run Flake8
         run: flake8 . --max-line-length=119
 
   # ==========================================
-  # ЭТАП 2: ТЕСТЫ (запуск Django-тестов)
+  # ЭТАП 2: ТЕСТЫ
   # ==========================================
   test:
     runs-on: ubuntu-latest
-    needs: lint                         # Ждать успешного линтинга
-
-    # --------------------------------------
-    # Сервисы (PostgreSQL + Redis)
-    # --------------------------------------
+    needs: lint
     services:
       postgres:
         image: postgres:17-alpine
@@ -61,7 +50,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
       redis:
         image: redis:7-alpine
         ports:
@@ -71,29 +59,19 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
-      # 1) Скачать код
       - uses: actions/checkout@v4
-
-      # 2) Установить Python
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-
-      # 3) Установить Poetry (менеджер зависимостей)
       - name: Install Poetry
         run: |
           python -m pip install --upgrade pip
           pip install poetry
-
-      # 4) Установить основные зависимости через Poetry
-      - name: Install project dependencies (Poetry)
+      - name: Install dependencies
         run: |
           poetry config virtualenvs.create false
           poetry install --no-interaction
-
-      # 5) Применить миграции
       - name: Run migrations
         env:
           DB_NAME: test_db
@@ -107,8 +85,6 @@ jobs:
           SECRET_KEY: test-secret
           DEBUG: "True"
         run: python manage.py migrate
-
-      # 6) Запустить тесты
       - name: Run tests
         env:
           DB_NAME: test_db
@@ -124,28 +100,22 @@ jobs:
         run: python manage.py test
 
   # ==========================================
-  # ЭТАП 3: СБОРКА И ПУБЛИКАЦИЯ DOCKER-ОБРАЗА
+  # ЭТАП 3: СБОРКА И ПУБЛИКАЦИЯ
   # ==========================================
   build:
     runs-on: ubuntu-latest
-    needs: test                         # Ждать успешных тестов
-
+    needs: test
     steps:
-      # 1) Скачать код
       - uses: actions/checkout@v4
-
-      # 2) Войти в Docker Hub (используя секреты)
       - name: Login to Docker Hub
         run: echo ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
-
-      # 3) Собрать и отправить образ
-      - name: Build and Push Docker image
+      - name: Build and Push
         run: |
           docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }} .
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/lms:${{ github.sha }}
 
-     # ==========================================
-  # ЭТАП 4: ДЕПЛОЙ НА СЕРВЕР
+  # ==========================================
+  # ЭТАП 4: ДЕПЛОЙ
   # ==========================================
   deploy:
     runs-on: ubuntu-latest
@@ -167,19 +137,17 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
             cd /home/${{ secrets.SSH_USER }}/app
             
-            echo \"SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}\" > .env.docker
-            echo \"DEBUG=True\" >> .env.docker
-            echo \"DB_NAME=${{ secrets.DB_NAME }}\" >> .env.docker
-            echo \"DB_USER=${{ secrets.DB_USER }}\" >> .env.docker
-            echo \"DB_PASSWORD=${{ secrets.DB_PASSWORD }}\" >> .env.docker
-            echo \"DB_HOST=postgres\" >> .env.docker
-            echo \"DB_PORT=5432\" >> .env.docker
-            echo \"REDIS_HOST=redis\" >> .env.docker
-            echo \"REDIS_PORT=6379\" >> .env.docker
-            echo \"REDIS_DB=0\" >> .env.docker
-            
-            cp .env.docker .env
+            echo \"SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}\" > .env
+            echo \"DEBUG=True\" >> .env
+            echo \"DB_NAME=${{ secrets.DB_NAME }}\" >> .env
+            echo \"DB_USER=${{ secrets.DB_USER }}\" >> .env
+            echo \"DB_PASSWORD=${{ secrets.DB_PASSWORD }}\" >> .env
+            echo \"DB_HOST=postgres\" >> .env
+            echo \"DB_PORT=5432\" >> .env
+            echo \"REDIS_HOST=redis\" >> .env
+            echo \"REDIS_PORT=6379\" >> .env
+            echo \"REDIS_DB=0\" >> .env
             
             docker compose down
             docker compose up -d
-            "
+          "
