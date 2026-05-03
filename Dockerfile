@@ -28,10 +28,6 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-ansi
 
-# Устанавливаем pip-зависимости (которые не работают через Poetry)
-COPY requirements-pip.txt .
-RUN pip install --no-cache-dir -r requirements-pip.txt
-
 # Копируем весь код проекта
 COPY . .
 
