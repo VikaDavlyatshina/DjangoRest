@@ -17,13 +17,12 @@ from pathlib import Path
 from celery.schedules import crontab
 from dotenv import load_dotenv
 
-# Проверяем, запущены ли мы в Docker (наличие файла /.dockerenv)
-if os.path.exists('/.dockerenv'):
-    load_dotenv('.env.docker', override=True)
-else:
-    load_dotenv('.env', override=True)
+# Локально читаем .env, в Docker переменные уже загружены через env_file
+if not os.path.exists("/.dockerenv"):
+    load_dotenv(".env", override=True)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Путь к корню проекта (где лежит manage.py)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -34,32 +33,35 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True if os.getenv("DEBUG") == "True" else False
+DEBUG = os.getenv("DEBUG", "False") == "True"
 
+# Разрешенные хосты
+# Какие домены/IP могут обращаться к сайту
 ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-    # Сторнние библиотеки
-    "rest_framework",
-    "rest_framework_simplejwt",
-    "drf_yasg",
-    "corsheaders",
-    "django_filters",
-    "drf_spectacular",
-    "django_celery_beat",
-    # Приложения проекта
-    "users",
-    "lms",
+    # --- Стандартные приложения Django ---
+    "django.contrib.admin",  # Админ-панель (yourdomain.ru/admin/)
+    "django.contrib.auth",  # Пользователи, группы, права доступа
+    "django.contrib.contenttypes",  # Связи между моделями (служебное)
+    "django.contrib.sessions",  # Хранение сессий пользователей
+    "django.contrib.messages",  # Всплывающие сообщения (успех, ошибка)
+    "django.contrib.staticfiles",  # Работа со статикой (CSS, JS, картинки)
+    # --- Сторонние библиотеки ---
+    "rest_framework",  # Django REST Framework — создание API
+    "rest_framework_simplejwt",  # JWT-токены для безопасной авторизации через API
+    "corsheaders",  # Разрешает запросы к API с других доменов (нужно для фронтенда)
+    "django_filters",  # Фильтрация данных в API (поиск, сортировка)
+    "drf_spectacular",  # Современная автодокументация API (OpenAPI 3.0)
+    "django_celery_beat",  # Планировщик задач Celery (периодические задачи)
+    # --- Приложения проекта ---
+    "users",  # Пользователи (кастомная модель User)
+    "lms",  # Learning Management System (курсы, уроки)
 ]
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -101,8 +103,8 @@ DATABASES = {
         "NAME": os.getenv("DB_NAME"),  # Имя нашей базы
         "USER": os.getenv("DB_USER"),  # Имя пользователя PostgreSQL
         "PASSWORD": os.getenv("DB_PASSWORD"),  # Пароль пользователя PostgreSQL
-        "HOST": os.getenv("HOST"),
-        "PORT": os.getenv("PORT"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
     }
 }
 
@@ -113,15 +115,19 @@ DATABASES = {
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        # Нельзя использовать логин/email как часть пароля
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        # Минимальная длина пароля (по умолчанию 8 символов)
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+        # Запрещает популярные пароли (qwerty, 123456, password)
     },
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+        # Запрещает пароли, состоящие только из цифр (12345678)
     },
 ]
 
@@ -129,40 +135,72 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
+# Язык интерфейса (кнопки, надписи в админке)
 LANGUAGE_CODE = "en-us"
 
+# Часовой пояс (влияет на auto_now_add, даты в админке)
 TIME_ZONE = "Europe/Moscow"
 
+# Интернационализация (переводы на другие языки)
 USE_I18N = True
 
+# Использовать часовые пояса (хранить время в UTC, показывать в локальном)
 USE_TZ = True
 
+# СТАТИЧЕСКИЕ И МЕДИА ФАЙЛЫ
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
+# URL для доступа к статике (CSS, JS, картинки сайта)
 STATIC_URL = "static/"
 
+# Папка, куда collectstatic собирает ВСЮ статику для продакшена
+# После деплоя запустить: python manage.py collectstatic
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+# URL для доступа к медиа-файлам (загруженные пользователем файлы)
+# В браузере: yourdomain.ru/media/uploads/photo.jpg
 MEDIA_URL = "media/"
+
+# Папка, где хранятся загруженные пользователями файлы
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
+# ТИП ПОЛЯ ПО УМОЛЧАНИЮ ДЛЯ ПЕРВИЧНЫХ КЛЮЧЕЙ
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+
+# КАСТОМНАЯ МОДЕЛЬ ПОЛЬЗОВАТЕЛЯ
+
+# Вместо стандартной модели User используется своя (users.User)
+# Позволяет добавить свои поля (телефон, аватар, дата рождения)
 AUTH_USER_MODEL = "users.User"
 
+# НАСТРОЙКИ DJANGO REST FRAMEWORK (API)
+
 REST_FRAMEWORK = {
+    # Фильтрация по умолчанию (поиск и сортировка в API)
     "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
+    # Способ аутентификации через JWT-токены (вместо сессий/куки)
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    # Доступ по умолчанию: только авторизованные пользователи
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    # Генератор OpenAPI-схемы для автодокументации
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
+#  НАСТРОЙКИ JWT-ТОКЕНОВ
+
 SIMPLE_JWT = {
+    # Access-токен — короткоживущий ключ доступа
+    # 5 минут для безопасности: если украдут — быстро истечёт
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    # Refresh-токен — долгоживущий токен обновлени
+    # Нужен, чтобы получить новый access-токен без повторного ввода пароля
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
 
@@ -180,20 +218,25 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://read-and-write.example.com",  #  Замените на адрес вашего фронтенд-сервера
+    "https://read-and-write.example.com",  # Замените на адрес вашего фронтенд-сервера
     # и добавьте адрес бэкенд-сервера
 ]
 
+# Запрет запросов отовсюду (разрешены только из списка выше)
 CORS_ALLOW_ALL_ORIGINS = False
 
 
+# НАСТРОЙКИ ДОКУМЕНТАЦИИ API (Swagger/OpenAPI)
+
 SPECTACULAR_SETTINGS = {
-    "TITLE": "LMS API",
-    "DESCRIPTION": "API для управления курсами, уроками, подписками и платежами",
-    "VERSION": "1.0.0",
-    "SERVE_INCLUDE_SCHEMA": False,
-    # OTHER SETTINGS
+    "TITLE": "LMS API",  # Название API
+    "DESCRIPTION": "API для управления курсами, уроками, подписками и платежами",  # Описание
+    "VERSION": "1.0.0",  # Версия API
+    "SERVE_INCLUDE_SCHEMA": False,  # Не показывать схему в ответах API
 }
+
+# НАСТРОЙКИ STRIPE (ПЛАТЕЖНАЯ СИСТЕМА)
+
 # Ключи от Stripe(для подключения платежей)
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")

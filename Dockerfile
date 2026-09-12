@@ -28,13 +28,6 @@ COPY pyproject.toml poetry.lock ./
 RUN poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-ansi
 
-# Устанавливаем pip-зависимости (которые не работают через Poetry)
-RUN pip install --no-cache-dir \
-    django-celery-beat==2.9.0 \
-    django-timezone-field==7.2.1 \
-    python-crontab==3.3.0 \
-    cron-descriptor==1.4.5
-
 # Копируем весь код проекта
 COPY . .
 
@@ -42,4 +35,4 @@ COPY . .
 EXPOSE 8000
 
 # Запускаем сервер Django
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["sh", "-c", "python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind 0.0.0.0:8000"]
