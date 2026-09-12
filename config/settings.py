@@ -14,9 +14,14 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from celery.schedules import crontab
 from dotenv import load_dotenv
 
-load_dotenv(override=True)
+# Проверяем, запущены ли мы в Docker (наличие файла /.dockerenv)
+if os.path.exists('/.dockerenv'):
+    load_dotenv('.env.docker', override=True)
+else:
+    load_dotenv('.env', override=True)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -50,6 +55,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_filters",
     "drf_spectacular",
+    "django_celery_beat",
     # Приложения проекта
     "users",
     "lms",
@@ -71,7 +77,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -92,9 +98,9 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("NAME"),  # Имя нашей базы
-        "USER": os.getenv("USER"),  # Имя пользователя PostgreSQL
-        "PASSWORD": os.getenv("PASSWORD"),  # Пароль пользователя PostgreSQL
+        "NAME": os.getenv("DB_NAME"),  # Имя нашей базы
+        "USER": os.getenv("DB_USER"),  # Имя пользователя PostgreSQL
+        "PASSWORD": os.getenv("DB_PASSWORD"),  # Пароль пользователя PostgreSQL
         "HOST": os.getenv("HOST"),
         "PORT": os.getenv("PORT"),
     }
@@ -125,7 +131,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Europe/Moscow"
 
 USE_I18N = True
 
@@ -152,7 +158,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema"
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 SIMPLE_JWT = {
@@ -170,11 +176,11 @@ SIMPLE_JWT = {
 # ]
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:8000',  # Замените на адрес вашего фронтенд-сервера
+    "http://localhost:8000",  # Замените на адрес вашего фронтенд-сервера
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://read-and-write.example.com", #  Замените на адрес вашего фронтенд-сервера
+    "https://read-and-write.example.com",  #  Замените на адрес вашего фронтенд-сервера
     # и добавьте адрес бэкенд-сервера
 ]
 
@@ -182,17 +188,57 @@ CORS_ALLOW_ALL_ORIGINS = False
 
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'LMS API',
-    'DESCRIPTION': 'API для управления курсами, уроками, подписками и платежами',
-    'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
+    "TITLE": "LMS API",
+    "DESCRIPTION": "API для управления курсами, уроками, подписками и платежами",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
     # OTHER SETTINGS
 }
 # Ключи от Stripe(для подключения платежей)
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
-STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY')
+STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
 
 # Маршрут перехода при успешной оплаты
-STRIPE_SUCCESS_URL = os.getenv('STRIPE_SUCCESS_URL')
+STRIPE_SUCCESS_URL = os.getenv("STRIPE_SUCCESS_URL")
 # Маршрут перехода при отмене оплаты
-STRIPE_CANCEL_URL = os.getenv('STRIPE_CANCEL_URL')
+STRIPE_CANCEL_URL = os.getenv("STRIPE_CANCEL_URL")
+
+# Настройки Redis
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = os.getenv("REDIS_PORT")
+REDIS_DB = os.getenv("REDIS_DB")
+
+
+# Настройка Celery
+CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+CELERY_RESULT_BACKEND = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+
+CELERY_TIMEZONE = TIME_ZONE
+# Записывает в лог, когда начата задача
+CELERY_TASK_TRACK_STARTED = True
+
+CELERY_TASK_TIME_LIMIT = 30 * 60
+
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
+# Настройка расписания задачи
+CELERY_BEAT_SCHEDULE = {
+    "block-inactive-users-daily": {
+        "task": "users.tasks.block_inactive_users",  # The name of the task
+        "schedule": crontab(
+            hour=0, minute=0
+        ),  # каждый день в полночь  # How often the task should run
+    },
+    # Add more tasks as needed
+}
+
+# Настройка отправки писем
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = os.getenv("EMAIL_PORT")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS")
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL")
+
+SERVER_EMAIL = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

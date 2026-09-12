@@ -96,7 +96,7 @@ class PaymentCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payments
-        fields = ["paid_course", "paid_lesson","payment_method"]
+        fields = ["paid_course", "paid_lesson", "payment_method"]
         read_only_fields = ["payment_amount"]
 
     def validate(self, data):
@@ -115,7 +115,9 @@ class PaymentCreateSerializer(serializers.ModelSerializer):
         if paid_course:
             amount = paid_course.price
         elif paid_lesson:
-            amount = paid_lesson.price if paid_lesson.price else paid_lesson.course.price
+            amount = (
+                paid_lesson.price if paid_lesson.price else paid_lesson.course.price
+            )
         else:
             amount = 0
 

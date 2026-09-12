@@ -7,43 +7,45 @@ from lms.models import Course, Lesson
 from lms.paginators import CoursePagination
 from lms.serializers import (CourseDetailSerializer, CourseSerializer,
                              LessonSerializer)
+from lms.tasks import send_course_update_notifications
 from users.models import Payments
 from users.permissions import IsModerator, IsOwner
 
 # Create your views here.
+
 
 @extend_schema_view(
     list=extend_schema(
         summary="Список курсов",
         description="Возвращает список курсов пользователя. Модераторы видят все курсы.",
         responses={200: CourseSerializer(many=True)},
-        tags=['courses'],
+        tags=["courses"],
     ),
     retrieve=extend_schema(
         summary="Детальная информация о курсе",
         description="Возвращает информацию о курсе. Если есть доступ — включает уроки.",
         responses={200: CourseDetailSerializer},
-        tags=['courses'],
+        tags=["courses"],
     ),
     create=extend_schema(
         summary="Создание курса",
         description="Создаёт новый курс. Доступно только обычным пользователям.",
         request=CourseSerializer,
         responses={201: CourseSerializer},
-        tags=['courses'],
+        tags=["courses"],
     ),
     update=extend_schema(
         summary="Обновление курса",
         description="Обновляет курс. Доступно модераторам и владельцам.",
         request=CourseSerializer,
         responses={200: CourseSerializer},
-        tags=['courses'],
+        tags=["courses"],
     ),
     destroy=extend_schema(
         summary="Удаление курса",
         description="Удаляет курс. Доступно только владельцу.",
         responses={204: None},
-        tags=['courses'],
+        tags=["courses"],
     ),
 )
 class CourseViewSet(ModelViewSet):
@@ -81,7 +83,9 @@ class CourseViewSet(ModelViewSet):
             return True
 
         # Проверяем покупку курса
-        if Payments.objects.filter(user=user, paid_course=course, is_paid=True).exists():
+        if Payments.objects.filter(
+            user=user, paid_course=course, is_paid=True
+        ).exists():
             return True
         return False
 
@@ -107,7 +111,21 @@ class CourseViewSet(ModelViewSet):
         return owned | Course.objects.filter(id__in=purchased_ids)
 
     def perform_create(self, serializer):
+        """Создание курса"""
+
+        # Привязка владельца
         serializer.save(owner=self.request.user)
+
+    def perform_update(self, serializer):
+        """
+        Обновление курса.
+        После сохранения запускает асинхронную рассылку уведомлений.
+        """
+        # Сохранение обновленного курса
+        course = serializer.save()
+
+        # Вызов задачи для отправки писем об обновлении
+        send_course_update_notifications.delay(course.id)
 
     def get_permissions(self):
         if self.action == "create":
@@ -131,7 +149,7 @@ class CourseViewSet(ModelViewSet):
         description="Создаёт новый урок. Доступно только обычным пользователям",
         request=LessonSerializer,
         responses={201: LessonSerializer},
-        tags=['lessons'],
+        tags=["lessons"],
     )
 )
 class LessonCreateAPIView(generics.CreateAPIView):
@@ -145,13 +163,12 @@ class LessonCreateAPIView(generics.CreateAPIView):
         serializer.save(owner=self.request.user)
 
 
-
 @extend_schema_view(
     get=extend_schema(
         summary="Список уроков",
         description="Возвращает список уроков. Модераторы видят все уроки, обычные пользователи - свои",
         responses={200: LessonSerializer(many=True)},
-        tags=['lessons'],
+        tags=["lessons"],
     )
 )
 class LessonListAPIView(generics.ListAPIView):
@@ -182,9 +199,11 @@ class LessonListAPIView(generics.ListAPIView):
             user=user, paid_course__isnull=False, is_paid=True
         ).values_list("paid_course", flat=True)
 
-        return owned | Lesson.objects.filter(id__in=purchased_lesson_ids) | Lesson.objects.filter(
-            course__id__in=purchased_course_ids)
-
+        return (
+            owned
+            | Lesson.objects.filter(id__in=purchased_lesson_ids)
+            | Lesson.objects.filter(course__id__in=purchased_course_ids)
+        )
 
 
 @extend_schema_view(
@@ -192,7 +211,7 @@ class LessonListAPIView(generics.ListAPIView):
         summary="Детальная информация об уроке",
         description="Возвращает детальную информацию о конкретном уроке.",
         responses={200: LessonSerializer},
-        tags=['lessons'],
+        tags=["lessons"],
     )
 )
 class LessonRetrieveAPIView(generics.RetrieveAPIView):
@@ -203,21 +222,20 @@ class LessonRetrieveAPIView(generics.RetrieveAPIView):
     permission_classes = [IsOwner | IsModerator]
 
 
-
 @extend_schema_view(
     put=extend_schema(
         summary="Обновление урока",
         description="Обновляет существующий урок. Доступно модераторам и владельцам.",
         request=LessonSerializer,
         responses={200: LessonSerializer},
-        tags=['lessons'],
+        tags=["lessons"],
     ),
     patch=extend_schema(
         summary="Частичное обновление урока",
         description="Частично обновляет существующий урок. Доступно модераторам и владельцам.",
         request=LessonSerializer,
         responses={200: LessonSerializer},
-        tags=['lessons'],
+        tags=["lessons"],
     ),
 )
 class LessonUpdateAPIView(generics.UpdateAPIView):
@@ -227,12 +245,29 @@ class LessonUpdateAPIView(generics.UpdateAPIView):
     queryset = Lesson.objects.all()
     permission_classes = [IsOwner | IsModerator]
 
+    def perform_update(self, serializer):
+        """
+        Обновление урока.
+        Если после сохранения изменений прошло часов 4 часов -
+         запускает асинхронную рассылку уведомлений.
+        """
+
+        # Сохраняем урок
+        lesson = serializer.save()
+
+        # Получаем курс
+        course = lesson.course
+
+        # Вызов задачи для отправки писем об обновлении
+        send_course_update_notifications.delay(course.id)
+
+
 @extend_schema_view(
     delete=extend_schema(
         summary="Удаление урока",
         description="Удалять уроки могут только владельцы этого урока",
         responses={204: None},
-        tags=['lessons'],
+        tags=["lessons"],
     )
 )
 class LessonDestroyAPIView(generics.DestroyAPIView):

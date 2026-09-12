@@ -1,7 +1,8 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
-from rest_framework import filters, generics, permissions, status, serializers
+from drf_spectacular.utils import (OpenApiParameter, extend_schema,
+                                   extend_schema_view)
+from rest_framework import filters, generics, permissions, serializers, status
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,8 +14,8 @@ from users.permissions import IsSelfOrReadOnly
 from users.serializers import (PaymentCreateSerializer, PaymentSerializer,
                                SubscriptionSerializer, UserCreateSerializer,
                                UserSerializer)
-from users.services import create_stripe_product, create_stripe_price, create_stripe_session
-
+from users.services import (create_stripe_price, create_stripe_product,
+                            create_stripe_session)
 
 
 @extend_schema_view(
@@ -57,27 +58,27 @@ class UserListView(generics.ListAPIView):
         summary="Профиль пользователя",
         description="Возвращает информацию о пользователе. Свой профиль — полная информация, чужой — ограниченная.",
         responses={200: UserSerializer},
-        tags=['users'],
+        tags=["users"],
     ),
     put=extend_schema(
         summary="Полное обновление профиля",
         description="Обновляет профиль пользователя. Доступно только владельцу.",
         request=UserSerializer,
         responses={200: UserSerializer},
-        tags=['users'],
+        tags=["users"],
     ),
     patch=extend_schema(
         summary="Частичное обновление профиля",
         description="Частично обновляет профиль пользователя. Доступно только владельцу.",
         request=UserSerializer,
         responses={200: UserSerializer},
-        tags=['users'],
+        tags=["users"],
     ),
     delete=extend_schema(
         summary="Удаление профиля",
         description="Удаляет профиль пользователя. Доступно владельцу или администратору.",
         responses={204: None},
-        tags=['users'],
+        tags=["users"],
     ),
 )
 class UserProfileView(generics.RetrieveUpdateDestroyAPIView):
@@ -126,7 +127,7 @@ class PaymentCreateAPIView(generics.CreateAPIView):
             session = create_stripe_session(
                 price.id,
                 f"{settings.STRIPE_SUCCESS_URL}?session_id={{CHECKOUT_SESSION_ID}}",
-                settings.STRIPE_CANCEL_URL
+                settings.STRIPE_CANCEL_URL,
             )
 
             payment.stripe_session_id = session.id
@@ -143,11 +144,14 @@ class PaymentCreateAPIView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
-        return Response({
-            'payment_id': serializer.instance.id,
-            'payment_url': self.payment_url,
-            'message': 'Перейдите по ссылке для оплаты'
-        }, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                "payment_id": serializer.instance.id,
+                "payment_url": self.payment_url,
+                "message": "Перейдите по ссылке для оплаты",
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 @extend_schema_view(
@@ -155,13 +159,27 @@ class PaymentCreateAPIView(generics.CreateAPIView):
         summary="Список платежей",
         description="Возвращает список платежей пользователя. Администратор видит все платежи.",
         parameters=[
-            OpenApiParameter(name='paid_course', description='ID курса', required=False, type=int),
-            OpenApiParameter(name='paid_lesson', description='ID урока', required=False, type=int),
-            OpenApiParameter(name='payment_method', description='Способ оплаты (cash/transfer/card)', required=False, type=str),
-            OpenApiParameter(name='ordering', description='Сортировка (payment_date, -payment_date, payment_amount)', required=False, type=str),
+            OpenApiParameter(
+                name="paid_course", description="ID курса", required=False, type=int
+            ),
+            OpenApiParameter(
+                name="paid_lesson", description="ID урока", required=False, type=int
+            ),
+            OpenApiParameter(
+                name="payment_method",
+                description="Способ оплаты (cash/transfer/card)",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="ordering",
+                description="Сортировка (payment_date, -payment_date, payment_amount)",
+                required=False,
+                type=str,
+            ),
         ],
         responses={200: PaymentSerializer(many=True)},
-        tags=['payments'],
+        tags=["payments"],
     )
 )
 class PaymentListView(generics.ListAPIView):
@@ -208,7 +226,7 @@ class PaymentListView(generics.ListAPIView):
 
 
 class SubscriptionAPIView(APIView):
-    """ Эндпоинт для управления подписками """
+    """Эндпоинт для управления подписками"""
 
     @extend_schema(
         summary="Список подписок",

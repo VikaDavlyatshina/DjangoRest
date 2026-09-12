@@ -1,0 +1,4 @@
+django-celery-beat==2.9.0
+django-timezone-field==7.2.1
+python-crontab==3.3.0
+cron-descriptor==1.4.5

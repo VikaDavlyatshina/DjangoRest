@@ -37,6 +37,9 @@ class Course(models.Model):
         verbose_name="Владелец",
         related_name="courses",
     )
+    updated_at = models.DateTimeField(
+        auto_now=True, verbose_name="Дата последнего обновления"
+    )
 
     class Meta:
         verbose_name = "Курс"
@@ -91,7 +94,7 @@ class Lesson(models.Model):
         help_text="Цена в рублях (если урок продаётся отдельно)",
         blank=True,
         null=True,
-        default=None
+        default=None,
     )
 
     class Meta:
