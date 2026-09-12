@@ -1,3 +1,7 @@
+# Чтобы poetry устанавливал только зависимости
+[tool.poetry]
+package-mode = false
+
 [project]
 name = "djangorest"
 version = "0.1.0"
@@ -6,16 +10,39 @@ authors = [
     {name = "Davlystshina Victoria",email = "vika.davlyatshina@mail.ru"}
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = "^3.13"
 dependencies = [
     "django (>=6.0.3,<7.0.0)",
     "djangorestframework (>=3.16.1,<4.0.0)",
     "python-dotenv (>=1.2.2,<2.0.0)",
     "psycopg2-binary (>=2.9.11,<3.0.0)",
-    "pillow (>=12.1.1,<13.0.0)"
+    "pillow (>=12.1.1,<13.0.0)",
+    "django-phonenumber-field (>=8.4.0,<9.0.0)",
+    "phonenumbers (>=9.0.26,<10.0.0)",
+    "django-filter (>=25.2,<26.0)",
+    "ipython (>=9.11.0,<10.0.0)",
+    "djangorestframework-stubs (>=3.16.8,<4.0.0)",
+    "djangorestframework-simplejwt (>=5.5.1,<6.0.0)",
+    "coverage (>=7.13.5,<8.0.0)",
+    "django-cors-headers (>=4.9.0,<5.0.0)",
+    "requests (>=2.33.0,<3.0.0)",
+    "drf-spectacular (>=0.29.0,<0.30.0)",
+    "stripe (>=15.0.0,<16.0.0)",
+    "redis (>=7.4.0,<8.0.0)",
+    "celery (>=5.6.3,<6.0.0)",
+    "eventlet (>=0.40.4,<0.41.0)",
+    "gunicorn (>=25.3.0,<26.0.0)",
+    "django-timezone-field (>=7.2.1,<8.0.0)",
+    "django-celery-beat (>=2.9.0,<3.0.0)",
 ]
 
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+black = "^26.3.1"
+isort = "^8.0.1"
+flake8 = "^7.3.0"
+

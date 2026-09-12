@@ -1,0 +1,194 @@
+[
+  {
+    "model": "lms.lesson",
+    "pk": 5,
+    "fields": {
+      "title": "Введение в Python",
+      "description": "История Python, установка, первая программа",
+      "link": "https://www.youtube.com/watch?v=abc123",
+      "preview": "",
+      "course": 3,
+      "owner": 5
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 6,
+    "fields": {
+      "title": "Переменные и типы данных",
+      "description": "Числа, строки, списки, словари",
+      "link": "https://www.youtube.com/watch?v=def456",
+      "preview": "",
+      "course": 3,
+      "owner": 5
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 7,
+    "fields": {
+      "title": "Условные операторы и циклы",
+      "description": "if, else, for, while",
+      "link": "https://www.youtube.com/watch?v=ghi789",
+      "preview": "",
+      "course": 3,
+      "owner": 5
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 8,
+    "fields": {
+      "title": "Функции в Python",
+      "description": "Создание функций, аргументы, return",
+      "link": "https://www.youtube.com/watch?v=jkl012",
+      "preview": "",
+      "course": 3,
+      "owner": 5
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 9,
+    "fields": {
+      "title": "Введение в Django",
+      "description": "Установка Django, создание проекта",
+      "link": "https://www.youtube.com/watch?v=mno345",
+      "preview": "",
+      "course": 4,
+      "owner": 5
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 10,
+    "fields": {
+      "title": "Модели Django",
+      "description": "Создание моделей, миграции, ORM",
+      "link": "https://www.youtube.com/watch?v=pqr678",
+      "preview": "",
+      "course": 4,
+      "owner": 5
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 11,
+    "fields": {
+      "title": "JavaScript основы",
+      "description": "Переменные, типы данных, функции",
+      "link": "https://www.youtube.com/watch?v=stu901",
+      "preview": "",
+      "course": 5,
+      "owner": 6
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 12,
+    "fields": {
+      "title": "DOM манипуляции",
+      "description": "Работа с DOM элементами, события",
+      "link": "https://www.youtube.com/watch?v=vwx234",
+      "preview": "",
+      "course": 5,
+      "owner": 6
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 13,
+    "fields": {
+      "title": "React Компоненты",
+      "description": "Функциональные и классовые компоненты, props",
+      "link": "https://www.youtube.com/watch?v=yza567",
+      "preview": "",
+      "course": 6,
+      "owner": 7
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 14,
+    "fields": {
+      "title": "React Hooks",
+      "description": "useState, useEffect, useContext",
+      "link": "https://www.youtube.com/watch?v=bcd890",
+      "preview": "",
+      "course": 6,
+      "owner": 7
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 15,
+    "fields": {
+      "title": "SQL SELECT запросы",
+      "description": "Выборка данных, WHERE, ORDER BY",
+      "link": "https://www.youtube.com/watch?v=efg123",
+      "preview": "",
+      "course": 7,
+      "owner": 5
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 16,
+    "fields": {
+      "title": "JOIN операции",
+      "description": "INNER JOIN, LEFT JOIN, RIGHT JOIN",
+      "link": "https://www.youtube.com/watch?v=hij456",
+      "preview": "",
+      "course": 7,
+      "owner": 5
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 17,
+    "fields": {
+      "title": "Алгоритмы поиска",
+      "description": "Линейный поиск, бинарный поиск",
+      "link": "https://www.youtube.com/watch?v=klm789",
+      "preview": "",
+      "course": 8,
+      "owner": 6
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 18,
+    "fields": {
+      "title": "Сортировка пузырьком",
+      "description": "Реализация алгоритма пузырьковой сортировки",
+      "link": "https://www.youtube.com/watch?v=nop012",
+      "preview": "",
+      "course": 8,
+      "owner": 6
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 19,
+    "fields": {
+      "title": "Flask Основы",
+      "description": "Создание простого веб-приложения на Flask",
+      "link": "https://www.youtube.com/watch?v=qrs345",
+      "preview": "",
+      "course": 9,
+      "owner": 8
+    }
+  },
+  {
+    "model": "lms.lesson",
+    "pk": 20,
+    "fields": {
+      "title": "Flask REST API",
+      "description": "Создание REST API с Flask-RESTful",
+      "link": "https://www.youtube.com/watch?v=tuv678",
+      "preview": "",
+      "course": 9,
+      "owner": 8
+    }
+  }
+]

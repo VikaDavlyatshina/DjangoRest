@@ -1,0 +1,132 @@
+[
+  {
+    "model": "lms.course",
+    "pk": 3,
+    "fields": {
+      "title": "Python для начинающих",
+      "description": "Полный курс по Python с нуля. Изучите основы программирования.",
+      "preview": "",
+      "owner": 5
+    }
+  },
+  {
+    "model": "lms.course",
+    "pk": 4,
+    "fields": {
+      "title": "Django Framework",
+      "description": "Создание веб-приложений на Django. От простых сайтов до сложных проектов.",
+      "preview": "",
+      "owner": 5
+    }
+  },
+  {
+    "model": "lms.course",
+    "pk": 5,
+    "fields": {
+      "title": "JavaScript для начинающих",
+      "description": "Изучите JavaScript с нуля. Переменные, функции, DOM.",
+      "preview": "",
+      "owner": 6
+    }
+  },
+  {
+    "model": "lms.course",
+    "pk": 6,
+    "fields": {
+      "title": "React.js - Полный курс",
+      "description": "Создание современных SPA приложений на React. Hooks, Redux, Router.",
+      "preview": "",
+      "owner": 7
+    }
+  },
+  {
+    "model": "lms.course",
+    "pk": 7,
+    "fields": {
+      "title": "Базы данных SQL",
+      "description": "Изучите SQL от основ до продвинутых запросов. PostgreSQL, MySQL.",
+      "preview": "",
+      "owner": 5
+    }
+  },
+  {
+    "model": "lms.course",
+    "pk": 8,
+    "fields": {
+      "title": "Алгоритмы и структуры данных",
+      "description": "Подготовка к собеседованиям. Сложность алгоритмов, сортировка, поиск.",
+      "preview": "",
+      "owner": 6
+    }
+  },
+  {
+    "model": "lms.course",
+    "pk": 9,
+    "fields": {
+      "title": "Flask - Микрофреймворк",
+      "description": "Создание веб-приложений на Flask. REST API, аутентификация.",
+      "preview": "",
+      "owner": 8
+    }
+  },
+  {
+    "model": "lms.course",
+    "pk": 10,
+    "fields": {
+      "title": "Docker для разработчиков",
+      "description": "Контейнеризация приложений. Docker Compose, Kubernetes.",
+      "preview": "",
+      "owner": 5
+    }
+  },
+  {
+    "model": "lms.course",
+    "pk": 11,
+    "fields": {
+      "title": "Git - Система контроля версий",
+      "description": "Основы Git. Ветвление, слияние, работа с удалёнными репозиториями.",
+      "preview": "",
+      "owner": 9
+    }
+  },
+  {
+    "model": "lms.course",
+    "pk": 12,
+    "fields": {
+      "title": "TypeScript - Полный курс",
+      "description": "Статическая типизация для JavaScript. Типы, интерфейсы, generics.",
+      "preview": "",
+      "owner": 7
+    }
+  },
+  {
+    "model": "lms.course",
+    "pk": 13,
+    "fields": {
+      "title": "Node.js для начинающих",
+      "description": "Серверный JavaScript. Express, MongoDB, REST API.",
+      "preview": "",
+      "owner": 10
+    }
+  },
+  {
+    "model": "lms.course",
+    "pk": 14,
+    "fields": {
+      "title": "Vue.js - Основы",
+      "description": "Прогрессивный JavaScript фреймворк. Компоненты, Vuex, Router.",
+      "preview": "",
+      "owner": 6
+    }
+  },
+  {
+    "model": "lms.course",
+    "pk": 15,
+    "fields": {
+      "title": "Python для анализа данных",
+      "description": "Pandas, NumPy, Matplotlib. Визуализация данных.",
+      "preview": "",
+      "owner": 8
+    }
+  }
+]
